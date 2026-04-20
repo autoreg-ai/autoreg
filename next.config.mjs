@@ -1,13 +1,11 @@
 import nextra from 'nextra'
 
 const withNextra = nextra({
-  contentDirBasePath: '/',
-  latex: true,
-  search: {
-    codeblocks: false
-  }
+  theme: 'nextra-theme-docs',
+  themeConfig: './theme.config.jsx'
 })
 
 export default withNextra({
-  output: 'standalone'
+  reactStrictMode: true,
+  poweredByHeader: false
 })

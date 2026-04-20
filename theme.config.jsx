@@ -1,15 +1,21 @@
 export default {
-  logo: <span>Autoreg Docs</span>,
+  logo: <strong>Autoreg Docs</strong>,
   project: {
-    link: 'https://github.com/your-org/autoreg'
+    link: 'https://github.com/langchain-ai/docs'
   },
-  docsRepositoryBase: 'https://github.com/your-org/autoreg/tree/main',
-  footer: {
-    text: `MIT ${new Date().getFullYear()} © Autoreg`
-  },
+  docsRepositoryBase: 'https://github.com/your-org/autoregr/tree/main',
   useNextSeoProps() {
     return {
-      titleTemplate: '%s – Autoreg Docs'
+      titleTemplate: '%s | Autoreg Docs'
     }
+  },
+  navigation: {
+    prev: true,
+    next: true
+  },
+  darkMode: true,
+  primaryHue: 221,
+  footer: {
+    text: `Autoreg Documentation © ${new Date().getFullYear()}`
   }
 }

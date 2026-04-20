@@ -1,28 +1,35 @@
 # Autoreg Docs
 
-Technical documentation site for **Autoreg**, the AI test regression agent that automates test workflows.
+A technical documentation website for **Autoreg** (AI test regression agent), inspired by modern docs experiences such as LangChain's docs layout.
 
-## Quick start
+## Stack
+
+- Next.js
+- Nextra (`nextra-theme-docs`)
+- MDX pages in `pages/`
+- Vercel deployment
+
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000.
+Then open http://localhost:3000.
 
-## Build and preview
+## Build and run production mode
 
 ```bash
 npm run build
 npm run start
 ```
 
-## Deploy on Vercel
+## Deploy to Vercel
 
-1. Push this repo to GitHub.
-2. Import the project in Vercel.
-3. Keep defaults (`framework: nextjs`, `buildCommand: npm run build`).
+1. Push code to GitHub.
+2. Import repo in Vercel.
+3. Leave framework as **Next.js**.
 4. Deploy.
 
 `vercel.json` is included for explicit build settings.

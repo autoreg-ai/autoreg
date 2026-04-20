@@ -1,0 +1,10 @@
+{
+  "index": {
+    "title": "Overview",
+    "type": "page"
+  },
+  "guide": {
+    "title": "Getting Started",
+    "type": "menu"
+  }
+}
