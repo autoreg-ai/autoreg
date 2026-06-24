@@ -1,42 +1,103 @@
 ---
-title: Quickstart
-description: Run the docs locally and deploy to Vercel.
+title: Quick Reference
+description: Cheat sheet for common AutoReg commands and chat prompts.
 ---
 
-# Quickstart
+# Quick Reference
 
-This project uses a standard **Next.js + Nextra** docs stack.
-
-## Prerequisites
-
-- Node.js 20+
-- npm 10+
-- GitHub repository access
-
-## Run locally
+## Setup commands
 
 ```bash
-npm install
-npm run dev
+npm install                        # install dependencies
+npx playwright install chromium    # install browser
+npm run dev                        # start app (dev mode)
+npm run build && npm run package:electron  # build installer
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+## `.env` file
 
-## Production build
-
-```bash
-npm run build
-npm run start
+```env
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini
 ```
 
-## Deploy to Vercel
+## Keyboard shortcuts
 
-1. Push this repository to GitHub.
-2. In Vercel, click **Add New Project** and import the repository.
-3. Keep default settings:
-   - Framework: **Next.js**
-   - Build Command: `npm run build`
-   - Output: default
-4. Click **Deploy**.
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+N` | New Project |
 
-Your docs site will be live on a Vercel URL after the first build.
+## Agent chat prompts
+
+### Generation
+```
+"Generate tests for my project at /path/to/project"
+"Regenerate all tests"
+"Regenerate scenario-005"
+"Add a test for the export CSV button"
+```
+
+### Execution
+```
+"Run all tests"
+"Run scenario-003"
+"Stop tests"
+```
+
+### Analysis & healing
+```
+"Fix the failing tests"
+"Heal scenario-007"
+"Why is scenario-004 failing?"
+"Analyze the last run"
+```
+
+### Editing
+```
+"Add a test scenario for password reset"
+"Update scenario-002 to use the new modal selector"
+"Delete scenario-011"
+"Organize the plan into sections"
+```
+
+### Inspection
+```
+"What scenarios were generated?"
+"Take a snapshot of https://myapp.example.com/dashboard"
+"Show me the plan"
+```
+
+## Project folder layout
+
+```
+myproject/
+├── autoreg.md           ← your spec (required for generation)
+├── myproject.ar         ← manifest (auto-managed)
+├── tests/
+│   └── scenario-NNN.json
+├── plans/
+│   └── e2e-plan.json
+└── runs/
+    └── 2026-06-23T14-32/
+        ├── execution.log
+        └── artifacts/
+```
+
+## JSON Step DSL — quick action reference
+
+```json
+{ "action": "navigate",   "selector": "https://..." }
+{ "action": "click",      "selector": "[aria-label='Submit']" }
+{ "action": "fill",       "selector": "[aria-label='Email']",  "value": "user@test.com" }
+{ "action": "assert",     "selector": "text=Welcome",          "assertionType": "visible" }
+{ "action": "wait",       "selector": ".spinner",              "timeout": 3000 }
+{ "action": "screenshot"  }
+```
+
+## Full guide pages
+
+- [Installation](/guide/installation)
+- [Writing autoreg.md](/guide/autoreg-md)
+- [Generating Tests](/guide/generate-tests)
+- [Running & Managing Tests](/guide/manage-tests)
+- [Autohealing](/guide/autoheal)

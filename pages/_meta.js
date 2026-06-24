@@ -4,6 +4,6 @@ export default {
     "type": "page"
   },
   "guide": {
-    "title": "Getting Started"
+    "title": "Guide"
   }
 }

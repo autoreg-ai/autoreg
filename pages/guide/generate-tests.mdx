@@ -1,0 +1,109 @@
+---
+title: Generating Tests
+description: Create a project and run the AI agent to generate your Playwright test suite.
+---
+
+# Generating Tests
+
+AutoReg uses a three-step agent workflow to generate tests. Each step calls a LangGraph tool that opens a headless browser, captures a live DOM snapshot, and writes files to disk.
+
+## Step 1 — Create a new project
+
+1. Click **New Project** (or press `Ctrl+N`)
+2. Fill in the dialog:
+   - **Name** — human-readable project name
+   - **URL** — base URL of the application under test
+   - **Spec** — paste your `autoreg.md` content (saved to disk automatically)
+3. Click **Select Folder** and choose where to save the project
+4. Click **Create**
+
+The project folder is scaffolded immediately and the AR Agent starts in the right sidebar.
+
+## Step 2 — The agent runs automatically
+
+The agent follows this fixed sequence:
+
+```
+init_playwright_test_generation
+  Opens headless Chromium, navigates to your app URL
+  Reads autoreg.md, captures DOM snapshot
+  LLM enumerates all scenarios
+  Writes skeleton plans/e2e-plan.json immediately
+  ↓
+generate_next_playwright_test  (called once per scenario)
+  Takes fresh DOM snapshot
+  LLM generates one E2ESpecFile with real ARIA selectors
+  Writes tests/scenario-NNN.json to disk
+  Updates .ar manifest
+  Chat shows: "✓ Generated (3/12): Login with wrong password"
+  ↓
+generate_playwright_plan
+  Reads all tests/*.json
+  LLM groups tests into logical sections
+  Updates plans/e2e-plan.json with full section structure
+  Updates .ar manifest
+```
+
+**Watch the right sidebar** — a live accordion shows each scenario with a spinner that flips to a checkmark as each test file is written. The left sidebar's Tests and Plans panels update in real-time too.
+
+## Step 3 — Review generated files
+
+**Test files** (`tests/scenario-NNN.json`):
+
+```json
+{
+  "id": "scenario-001",
+  "title": "Login with valid credentials",
+  "category": "positive",
+  "description": "User navigates to login page and signs in successfully.",
+  "test": {
+    "url": "https://myapp.example.com",
+    "name": "Valid login",
+    "steps": [
+      { "action": "navigate",  "selector": "https://myapp.example.com/login" },
+      { "action": "fill",      "selector": "[aria-label='Email']",    "value": "user@test.com" },
+      { "action": "fill",      "selector": "[aria-label='Password']", "value": "password123" },
+      { "action": "click",     "selector": "button[type='submit']" },
+      { "action": "assert",    "selector": "text=Welcome",            "assertionType": "visible" }
+    ]
+  }
+}
+```
+
+Click any `scenario-NNN.json` in the left sidebar's **Tests** panel to view it in the main panel.
+
+**Plan file** (`plans/e2e-plan.json`):
+
+The plan groups scenarios into sections. Click `e2e-plan.json` in the **Plans** panel to review the full structure.
+
+## Project folder structure after generation
+
+```
+myproject/
+├── autoreg.md                 ← your spec
+├── myproject.ar               ← manifest (JSON)
+├── tests/
+│   ├── scenario-001.json      ← positive test
+│   ├── scenario-002.json      ← negative test
+│   └── scenario-NNN.json
+└── plans/
+    └── e2e-plan.json          ← full plan with sections
+```
+
+## Talking to the agent
+
+You can also type commands directly in the chat panel:
+
+```
+"Generate tests for my project at /Users/me/myproject"
+"What scenarios were generated?"
+"Add a test for password reset"
+"Regenerate scenario-003"
+```
+
+## Tips
+
+- **If generation stalls** — the agent has a recursion limit of 200 tool calls; for large specs (30+ scenarios) it should complete without hitting this. If it does, type "continue generation" in chat.
+- **If `autoreg.md` is missing** — `init` returns an error immediately. Create the file and type "retry generation".
+- **Skipped scenarios** — if a single test fails to generate (malformed LLM response), it is marked `skipped` and generation continues. Re-run with "regenerate skipped tests".
+- **Changing the model mid-generation** — use the model selector in the chat composer. The graph uses the new model from the next tool call onward.

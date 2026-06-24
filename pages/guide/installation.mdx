@@ -1,0 +1,86 @@
+---
+title: Installation
+description: Install AutoReg and configure it for first use.
+---
+
+# Installation
+
+## Prerequisites
+
+- **Node.js 18+** — [nodejs.org](https://nodejs.org)
+- **npm** (bundled with Node.js)
+- **OpenAI API key** — needed for all AI agent features
+
+## Install dependencies
+
+```bash
+# Clone or extract the project
+cd autoreg
+
+# Install npm packages
+npm install
+
+# Install Playwright's Chromium browser
+npx playwright install chromium
+```
+
+## Configure your API key
+
+Create a `.env` file in the project root:
+
+```env
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini
+```
+
+**Available models** (can also be switched in-app):
+
+| Model ID | Notes |
+|----------|-------|
+| `gpt-5.5` | Most capable |
+| `gpt-5.4-mini` | Balanced |
+| `gpt-4.1-mini` | Lightweight |
+| `gpt-5.4-nano` | Default — fast and cheap |
+| `gpt-5-nano` | Fastest |
+
+The `OPENAI_MODEL` env var sets the default. The chat composer's model selector overrides it at runtime without a restart.
+
+> **Security:** In production the key is encrypted with OS keychain (Mac) / DPAPI (Windows) and stored in `config.json`. On first launch without a `.env` file, AutoReg shows a prompt to enter your key — it is encrypted immediately and never stored in plaintext.
+
+## Start in development mode
+
+```bash
+npm run dev
+```
+
+This starts the Vite dev server on `http://localhost:5173` and launches the Electron window with hot-reload.
+
+## Build a production installer
+
+```bash
+npm run build
+npm run package:electron
+```
+
+Output is written to `release/`:
+- `release/AutoReg Setup.exe` (Windows installer)
+- `release/AutoReg.dmg` (Mac disk image)
+
+## Log files
+
+All `console.*` output is written to a rotating log file:
+
+| OS | Path |
+|----|------|
+| Windows | `%APPDATA%\AutoReg\logs\autoregDDMMYYYY.log` |
+| Mac | `~/Library/Logs/AutoReg/autoregDDMMYYYY.log` |
+
+Max 100 MB per file; archived with `_N` suffix on rotation.
+
+## Checklist
+
+- [ ] Node.js 18+ installed
+- [ ] `npm install` completed without errors
+- [ ] `npx playwright install chromium` completed
+- [ ] `.env` file with `OPENAI_API_KEY` set
+- [ ] `npm run dev` launches Electron window

@@ -1,27 +1,35 @@
 ---
-title: Autoreg Documentation
-description: AI test regression agent for automating test workflows.
+title: AutoReg — AI-Powered E2E Test Automation
+description: Electron desktop app that generates, runs, and auto-heals Playwright E2E tests from a natural-language spec.
 ---
 
-# Autoreg Documentation
+# AutoReg
 
-Autoreg is an **AI test regression agent** that automates manual and repetitive test workflows.
+AutoReg is an **Electron desktop app** that reads your `autoreg.md` spec, opens a real browser, and generates a complete Playwright E2E test suite — then runs, analyzes, and auto-heals failing tests with a LangGraph AI agent.
 
-Use this docs site to go from zero to a running Autoreg setup.
+## What AutoReg does
 
-## What you can do with Autoreg
+| Step | What happens |
+|------|-------------|
+| **1. Write spec** | Describe your app's features and test scenarios in `autoreg.md` |
+| **2. Generate** | The AI agent opens your app in a headless browser, captures live DOM snapshots, and generates `scenario-NNN.json` test files |
+| **3. Plan** | Tests are grouped into logical sections in `plans/e2e-plan.json` |
+| **4. Run** | Execute individual tests or the full suite with one click |
+| **5. Autoheal** | Failing tests are analyzed, root-caused, and regenerated automatically |
 
-- Orchestrate regression testing across environments
-- Trigger workflows from CI/CD pipelines
-- Standardize flaky-test triage and reporting
+## Core features
 
-## Docs roadmap
+- **Browser-grounded generation** — uses real ARIA selectors from live DOM, not guessed selectors
+- **Live progress** — accordion panel updates as each test is generated
+- **JSON Step DSL** — portable interchange format; readable and editable
+- **Autoheal loop** — `test_run_analyzer` → `test_regenerator` → `apply_scenario_fix`
+- **Encrypted API key storage** — OS keychain on Mac, DPAPI on Windows
+- **Model switching** — change OpenAI model in the chat composer without restart
 
-We are starting with the essentials and will keep expanding:
+## Quick navigation
 
-1. Quick setup
-2. Workflow configuration
-3. CI integrations
-4. Troubleshooting and best practices
-
-Get started now: [Quickstart](/guide/quickstart)
+- [Installation](/guide/installation) — prerequisites, install, API key setup
+- [Writing autoreg.md](/guide/autoreg-md) — spec format, sections, tips
+- [Generating tests](/guide/generate-tests) — create project and run the 3-step agent
+- [Running and managing tests](/guide/manage-tests) — execute, review, edit scenarios
+- [Autohealing](/guide/autoheal) — analyze failures and regenerate broken tests

@@ -1,9 +1,9 @@
 export default {
   logo: <strong>Autoreg Docs</strong>,
   project: {
-    link: 'https://github.com/langchain-ai/docs'
+    link: 'https://github.com/autoreg-ai/autoreg-docs'
   },
-  docsRepositoryBase: 'https://github.com/your-org/autoregr/tree/main',
+  docsRepositoryBase: 'https://github.com/autoreg-ai/autoreg-docs/tree/main',
   useNextSeoProps() {
     return {
       titleTemplate: '%s | Autoreg Docs'
@@ -16,6 +16,6 @@ export default {
   darkMode: true,
   primaryHue: 221,
   footer: {
-    text: `Autoreg Documentation © ${new Date().getFullYear()}`
+    text: `AutoReg © ${new Date().getFullYear()}`
   }
 }

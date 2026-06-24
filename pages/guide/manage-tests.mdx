@@ -1,0 +1,118 @@
+---
+title: Running and Managing Tests
+description: Execute tests, review run results, and edit scenarios manually.
+---
+
+# Running and Managing Tests
+
+## Running a test
+
+Click the **run icon** next to any `scenario-NNN.json` in the left sidebar's **Tests** panel.
+
+AutoReg executes the test via Playwright and streams output in real-time. When complete, a run folder is created:
+
+```
+myproject/
+└── runs/
+    └── 2026-06-23T14-32/
+        ├── meta.json
+        ├── execution.log
+        └── artifacts/
+            ├── screenshots/
+            └── videos/
+```
+
+Click a run in the **Runs** panel to view:
+- Step-by-step execution log
+- Screenshots at each step
+- Videos (if video recording is enabled)
+
+## Running the full suite
+
+In the **Plans** panel, open `e2e-plan.json` and click **Run All**. AutoReg runs every scenario in the plan in sequence.
+
+## Stopping a test run
+
+Click **Stop** in the toolbar (or type `"stop tests"` in chat). The `stop_tests` tool aborts the running Playwright process cleanly.
+
+## Viewing run artifacts
+
+For each run:
+- **Execution log** (`execution.log`) — line-by-line step output with pass/fail per step
+- **Screenshots** — captured at key steps and on failure
+- **Videos** — full recording of the browser session
+
+To view: click the run folder in the left sidebar → artifacts load in the main panel.
+
+## Editing a scenario manually
+
+Every test is a plain JSON file (`tests/scenario-NNN.json`). Click the file in the sidebar, edit the JSON in the main panel, and save.
+
+### JSON Step DSL — action reference
+
+| Action | Required fields | Optional fields |
+|--------|----------------|-----------------|
+| `navigate` | `selector` (URL) | — |
+| `click` | `selector` | — |
+| `fill` | `selector`, `value` | — |
+| `select` | `selector`, `value` | — |
+| `assert` | `selector`, `assertionType` | `value` |
+| `wait` | `selector` | `timeout` |
+| `screenshot` | — | `name` |
+
+**`assertionType` values:** `visible`, `hidden`, `text`, `value`, `url`, `title`
+
+### Example: adding an assertion step
+
+```json
+{
+  "action": "assert",
+  "selector": "[data-testid='success-banner']",
+  "assertionType": "visible"
+}
+```
+
+## Adding, updating, and deleting scenarios via the agent
+
+Type in the chat panel:
+
+```
+"Add a test scenario for password reset"
+"Update scenario-005 to use the new modal selector"
+"Delete scenario-012"
+```
+
+The agent calls `add_test_scenario`, `update_test_scenario`, or `delete_test_scenario` and updates the `.ar` manifest and plan automatically.
+
+## Generating a single new scenario
+
+To add a test for a feature not in the original spec:
+
+```
+"Generate a test for the export CSV button on the reports page"
+```
+
+The agent calls `generate_single_scenario`, which:
+1. Navigates to the relevant page
+2. Captures a live DOM snapshot
+3. Generates a new `scenario-NNN.json` with real selectors
+
+## Reorganizing the plan
+
+If your test structure needs cleanup:
+
+```
+"Organize the plan into logical sections"
+```
+
+The agent calls `auto_organize`, which re-groups tests by feature area and rewrites `e2e-plan.json`.
+
+## Capturing a page snapshot
+
+To debug selector issues or inspect what the agent sees:
+
+```
+"Take a snapshot of https://myapp.example.com/dashboard"
+```
+
+The agent calls `capture_page_snapshot`, which navigates to the URL, takes an accessibility snapshot, and shows it in chat.
