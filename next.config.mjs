@@ -7,5 +7,7 @@ const withNextra = nextra({
 
 export default withNextra({
   reactStrictMode: true,
-  poweredByHeader: false
+  poweredByHeader: false,
+  output: 'export',
+  images: { unoptimized: true }
 })
