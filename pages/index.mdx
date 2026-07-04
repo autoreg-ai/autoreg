@@ -1,35 +1,51 @@
 ---
 title: AutoReg — AI-Powered E2E Test Automation
-description: Electron desktop app that generates, runs, and auto-heals Playwright E2E tests from a natural-language spec.
+description: Test automation desktop app that generates, runs, and auto-heals E2E tests from a natural-language spec.
 ---
 
 # AutoReg
 
-AutoReg is an **Electron desktop app** that reads your `autoreg.md` spec, opens a real browser, and generates a complete Playwright E2E test suite — then runs, analyzes, and auto-heals failing tests with a LangGraph AI agent.
+AutoReg is a **test automation desktop app** that reads your `autoreg.md` spec, opens a real browser, and generates a complete E2E test suite — then runs, analyzes, and auto-heals failing tests with an AI agent.
 
 ## What AutoReg does
 
 | Step | What happens |
 |------|-------------|
-| **1. Write spec** | Describe your app's features and test scenarios in `autoreg.md` |
+| **1. Get a spec** | Describe your app in `autoreg.md` — [generate it from source code](/guide/generate-spec) with the `generate-autoreg` AI skill, or [write it by hand](/guide/autoreg-md) |
 | **2. Generate** | The AI agent opens your app in a headless browser, captures live DOM snapshots, and generates `scenario-NNN.json` test files |
 | **3. Plan** | Tests are grouped into logical sections in `plans/e2e-plan.json` |
 | **4. Run** | Execute individual tests or the full suite with one click |
 | **5. Autoheal** | Failing tests are analyzed, root-caused, and regenerated automatically |
 
+## Get started in 5 minutes
+
+1. **Download AutoReg** for your OS from [autoreg-ai.vercel.app/download](https://autoreg-ai.vercel.app/download) and install it
+2. **Launch AutoReg**
+3. **Install the [AutoReg: Skill Installer](/guide/generate-spec) extension** in VS Code — it adds the `generate-autoreg` skill to your coding agent, which writes your `autoreg.md` spec automatically from your app's source code
+
+Then in the app:
+
+1. **New Workflow** (`Ctrl+N`) — enter a name, your app's URL, and paste your `autoreg.md` spec
+2. Watch the agent generate the suite live in the right sidebar
+3. Click the **run icon** next to any test to execute it
+
+Full walkthrough: [Installation](/guide/installation) → [What is autoreg.md](/guide/autoreg-md) → [Generating tests](/guide/generate-tests).
+
 ## Core features
 
 - **Browser-grounded generation** — uses real ARIA selectors from live DOM, not guessed selectors
+- **Source-grounded specs** — the [`generate-autoreg` skill](/guide/generate-spec) writes `autoreg.md` from your codebase with confirmed selectors, signed by AutoReg cloud
 - **Live progress** — accordion panel updates as each test is generated
 - **JSON Step DSL** — portable interchange format; readable and editable
-- **Autoheal loop** — `test_run_analyzer` → `test_regenerator` → `apply_scenario_fix`
-- **Encrypted API key storage** — OS keychain on Mac, DPAPI on Windows
-- **Model switching** — change OpenAI model in the chat composer without restart
+- **Autoheal loop** — `analyze_test_runs` → `regenerate_failed_test` → `apply_scenario_fix`
+- **Model switching** — change the AI model in the chat composer without restart
 
 ## Quick navigation
 
-- [Installation](/guide/installation) — prerequisites, install, API key setup
-- [Writing autoreg.md](/guide/autoreg-md) — spec format, sections, tips
-- [Generating tests](/guide/generate-tests) — create project and run the 3-step agent
+- [Installation](/guide/installation) — download, install, first launch
+- [What is autoreg.md](/guide/autoreg-md) — spec concept, format, hand-writing guide
+- [Generating autoreg.md](/guide/generate-spec) — auto-generate the spec from source code
+- [Generating tests](/guide/generate-tests) — create a workflow and run the 3-step agent
 - [Running and managing tests](/guide/manage-tests) — execute, review, edit scenarios
 - [Autohealing](/guide/autoheal) — analyze failures and regenerate broken tests
+- [Quick Reference](/guide/quickstart) — commands, prompts, and DSL cheat sheet

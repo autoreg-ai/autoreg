@@ -1,74 +1,46 @@
 ---
 title: Installation
-description: Install AutoReg and configure it for first use.
+description: Download AutoReg for your OS and configure it for first use.
 ---
 
 # Installation
 
-## Prerequisites
+## 1. Download AutoReg
 
-- **Node.js 18+** — [nodejs.org](https://nodejs.org)
-- **npm** (bundled with Node.js)
-- **OpenAI API key** — needed for all AI agent features
+Grab the installer for your OS from the download page:
 
-## Install dependencies
+**[https://autoreg-ai.vercel.app/download](https://autoreg-ai.vercel.app/download)**
 
-```bash
-# Clone or extract the project
-cd autoreg
+| OS | Installer |
+|----|-----------|
+| macOS (Apple Silicon & Intel) | `AutoReg.dmg` — open and drag AutoReg to Applications |
+| Windows 10+ | `AutoReg Setup.exe` — run the installer and follow the prompts |
 
-# Install npm packages
-npm install
+## 2. Choose your AI model (optional)
 
-# Install Playwright's Chromium browser
-npx playwright install chromium
-```
+AutoReg works out of the box with the default model. You can switch models any time via the chat composer — no restart needed:
 
-## Configure your API key
-
-Create a `.env` file in the project root:
-
-```env
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4o-mini
-```
-
-**Available models** (can also be switched in-app):
-
-| Model ID | Notes |
-|----------|-------|
+| Mode | Notes |
+|------|-------|
+| **Auto** | Default — fast and cheap |
 | `gpt-5.5` | Most capable |
 | `gpt-5.4-mini` | Balanced |
-| `gpt-4.1-mini` | Lightweight |
-| `gpt-5.4-nano` | Default — fast and cheap |
-| `gpt-5-nano` | Fastest |
 
-The `OPENAI_MODEL` env var sets the default. The chat composer's model selector overrides it at runtime without a restart.
+More model providers are coming soon.
 
-> **Security:** In production the key is encrypted with OS keychain (Mac) / DPAPI (Windows) and stored in `config.json`. On first launch without a `.env` file, AutoReg shows a prompt to enter your key — it is encrypted immediately and never stored in plaintext.
+## 3. Install the spec-generator extension
 
-## Start in development mode
+The **AutoReg: Skill Installer** extension for VS Code (and VS Code-compatible editors) installs the `generate-autoreg` AI skill into your coding agent — Claude Code, Cursor, GitHub Copilot, Windsurf, Cline, and more. The skill analyzes your app's source code and writes a complete, signed `autoreg.md` spec automatically, so you don't have to write one by hand.
 
-```bash
-npm run dev
-```
+1. In VS Code, open **Extensions** and search for **AutoReg: Skill Installer** (publisher: `autoreg`).
+2. Open the **AutoReg** panel in the activity bar.
+3. Click **Install** next to the coding agents detected in your workspace.
 
-This starts the Vite dev server on `http://localhost:5173` and launches the Electron window with hot-reload.
-
-## Build a production installer
-
-```bash
-npm run build
-npm run package:electron
-```
-
-Output is written to `release/`:
-- `release/AutoReg Setup.exe` (Windows installer)
-- `release/AutoReg.dmg` (Mac disk image)
+Full walkthrough: [Generating autoreg.md](/guide/generate-spec).
 
 ## Log files
 
-All `console.*` output is written to a rotating log file:
+All app output is written to a rotating log file — useful when reporting issues:
 
 | OS | Path |
 |----|------|
@@ -79,8 +51,12 @@ Max 100 MB per file; archived with `_N` suffix on rotation.
 
 ## Checklist
 
-- [ ] Node.js 18+ installed
-- [ ] `npm install` completed without errors
-- [ ] `npx playwright install chromium` completed
-- [ ] `.env` file with `OPENAI_API_KEY` set
-- [ ] `npm run dev` launches Electron window
+- [ ] Installer downloaded from [autoreg-ai.vercel.app/download](https://autoreg-ai.vercel.app/download) and app installed
+- [ ] AutoReg launches
+- [ ] **AutoReg: Skill Installer** extension installed in your editor
+
+## Next steps
+
+- [What is autoreg.md](/guide/autoreg-md) — the spec that drives everything
+- [Generating autoreg.md](/guide/generate-spec) — auto-generate the spec from source code
+- [Generating tests](/guide/generate-tests) — create your first workflow

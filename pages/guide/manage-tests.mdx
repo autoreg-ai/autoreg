@@ -9,10 +9,10 @@ description: Execute tests, review run results, and edit scenarios manually.
 
 Click the **run icon** next to any `scenario-NNN.json` in the left sidebar's **Tests** panel.
 
-AutoReg executes the test via Playwright and streams output in real-time. When complete, a run folder is created:
+AutoReg executes the test and streams output in real-time. (Under the hood, tests run on the Playwright browser-automation engine.) When complete, a run folder is created:
 
 ```
-myproject/
+myworkflow/
 └── runs/
     └── 2026-06-23T14-32/
         ├── meta.json
@@ -33,7 +33,7 @@ In the **Plans** panel, open `e2e-plan.json` and click **Run All**. AutoReg runs
 
 ## Stopping a test run
 
-Click **Stop** in the toolbar (or type `"stop tests"` in chat). The `stop_tests` tool aborts the running Playwright process cleanly.
+Click **Stop** in the toolbar (or type `"stop tests"` in chat). The `stop_tests` tool aborts the running test process cleanly.
 
 ## Viewing run artifacts
 
@@ -52,15 +52,29 @@ Every test is a plain JSON file (`tests/scenario-NNN.json`). Click the file in t
 
 | Action | Required fields | Optional fields |
 |--------|----------------|-----------------|
-| `navigate` | `selector` (URL) | — |
+| `navigate` | `value` or `selector` (URL) | — |
 | `click` | `selector` | — |
 | `fill` | `selector`, `value` | — |
-| `select` | `selector`, `value` | — |
-| `assert` | `selector`, `assertionType` | `value` |
-| `wait` | `selector` | `timeout` |
-| `screenshot` | — | `name` |
+| `select` | `selector`, `value` (string or array) | — |
+| `hover` | `selector` | — |
+| `press` | `selector`, `value` (key, e.g. `Enter`) | — |
+| `scroll` | — | `selector` (scrolls element into view; without it, scrolls the page) |
+| `assert` | `selector` | `assertionType` (default `visible`), `expected` |
+| `wait` | one of: `waitFor` (text), `selector`, or `value`/`timeout` (ms pause) | `assertionType` (wait state) |
+| `evaluate` | `value` (JS code) | — |
+| `screenshot` | — | — |
 
-**`assertionType` values:** `visible`, `hidden`, `text`, `value`, `url`, `title`
+**`assertionType` values:**
+
+| Value | Meaning |
+|-------|---------|
+| `visible` (default) | Element or `expected` text is visible |
+| `hidden` / `not_visible` / `not_exists` | Element is hidden or absent |
+| `exists` | Element is in the DOM (not necessarily visible) |
+| `equals` | Element text/value equals `expected`; a numeric `expected` asserts element *count* |
+| `contains` | Element text/value contains `expected` |
+
+Every step also accepts `description` (shown in logs), `timeout` (ms), and `screenshot: true` (capture after the step).
 
 ### Example: adding an assertion step
 
@@ -92,7 +106,7 @@ To add a test for a feature not in the original spec:
 "Generate a test for the export CSV button on the reports page"
 ```
 
-The agent calls `generate_single_scenario`, which:
+The agent calls `generate_scenario_from_page`, which:
 1. Navigates to the relevant page
 2. Captures a live DOM snapshot
 3. Generates a new `scenario-NNN.json` with real selectors

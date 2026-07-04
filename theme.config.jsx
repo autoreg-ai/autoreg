@@ -1,5 +1,34 @@
 export default {
-  logo: <strong>Autoreg Docs</strong>,
+  logo: (
+    <>
+      <img
+        src="/autoreg_logo.png"
+        alt="AutoReg"
+        style={{ height: 36, width: 'auto' }}
+        className="autoreg-logo-light"
+      />
+      <img
+        src="/autoreg_logo_dark.png"
+        alt="AutoReg"
+        style={{ height: 36, width: 'auto' }}
+        className="autoreg-logo-dark"
+      />
+      <style jsx global>{`
+        html[class~='dark'] .autoreg-logo-light {
+          display: none;
+        }
+        html:not([class~='dark']) .autoreg-logo-dark {
+          display: none;
+        }
+      `}</style>
+    </>
+  ),
+  head: (
+    <>
+      <link rel="icon" type="image/png" href="/icon.png" />
+      <link rel="apple-touch-icon" href="/icon.png" />
+    </>
+  ),
   project: {
     link: 'https://github.com/autoreg-ai/autoreg-docs'
   },

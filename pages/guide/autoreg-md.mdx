@@ -1,27 +1,46 @@
 ---
-title: Writing autoreg.md
-description: How to write the autoreg.md spec that drives AI test generation.
+title: What is autoreg.md
+description: What the autoreg.md spec is, why it exists, and how to write one by hand.
 ---
 
-# Writing `autoreg.md`
+# What is `autoreg.md`?
 
-`autoreg.md` is the natural-language specification that AutoReg reads to understand your application and enumerate test scenarios. It is the **single input** the AI agent needs to generate a full test suite.
+`autoreg.md` is a plain Markdown file that describes your application to AutoReg: what it does, how to log in, which features to test, and which edge cases matter. It is the **single input** the AI agent needs to generate a complete E2E test suite.
+
+Think of it as a test spec written for a very capable QA engineer who has never seen your app. Everything the agent knows about your application — URLs, credentials, selectors, expected behaviours — comes from this file plus live DOM snapshots taken in a real browser.
+
+## How AutoReg uses it
+
+1. When you create a workflow (or run generation), the agent reads `autoreg.md` from your workflow folder.
+2. An LLM enumerates every test scenario described or implied by the spec.
+3. For each scenario, the agent opens your app in a headless browser, captures a live DOM snapshot, and generates a `tests/scenario-NNN.json` test file with real selectors.
+
+**Better spec in → better tests out.** A vague spec produces generic happy-path tests; a detailed spec with credentials, exact button labels, and edge cases produces a suite that passes on the first run.
+
+## Two ways to get an `autoreg.md`
+
+| Path | When to use |
+|------|-------------|
+| **[Generate it from your source code](/guide/generate-spec)** (recommended) | You have access to the app's codebase. The `generate-autoreg` AI skill analyzes routes, components, validation schemas, and auth flows, then writes a complete, cryptographically signed spec for you. |
+| **Write it by hand** (this page, below) | You are testing a third-party or closed-source app, or you want full manual control. |
 
 ## Where it lives
 
-Place `autoreg.md` in your **project folder** — the same folder you select when creating a new AutoReg project. The agent reads it automatically during `init_playwright_test_generation`.
+Place `autoreg.md` in your **workflow folder** — the same folder you select when creating a new AutoReg workflow. The agent reads it automatically during `init_playwright_test_generation`.
 
 ```
-myproject/
+myworkflow/
 ├── autoreg.md          ← your spec
-├── myproject.ar        ← manifest (auto-created)
+├── myworkflow.ar       ← manifest (auto-created)
 ├── tests/              ← generated test files
 └── plans/              ← generated plan
 ```
 
-## What to include
+You can also paste the spec into the **New Workflow** dialog — it is saved to disk as `autoreg.md` automatically.
 
-Write `autoreg.md` as free-form Markdown. The agent parses it with an LLM, so natural language works — structure helps but is not required.
+## Writing `autoreg.md` by hand
+
+Write it as free-form Markdown. The agent parses it with an LLM, so natural language works — structure helps but is not required.
 
 ### Recommended sections
 
@@ -105,7 +124,8 @@ Mention anything unusual the agent should know (custom components, modals, multi
 - **More detail = better selectors.** Describe ARIA labels, button text, and field names exactly as they appear in the UI.
 - **Include the base URL.** The agent navigates to it and takes a DOM snapshot before generating each test.
 - **List both happy-path and failure scenarios.** The agent generates both `positive` and `negative` category tests.
-- **You can paste `autoreg.md` during project creation.** The New Project dialog has a spec field — paste your spec there and it is saved to disk automatically.
+- **Quote exact UI text.** If the error message is "Invalid email or password", write exactly that — the agent asserts on it verbatim.
+- **Keep it current.** When features change, update the spec before regenerating — the spec is the source of truth for what "correct" means.
 
 ## Minimal example
 
@@ -125,3 +145,18 @@ App at https://myapp.example.com.
 ```
 
 Even a minimal spec like this gives the agent enough to generate 4–6 test scenarios with real selectors.
+
+## Signed vs. unsigned specs
+
+Specs produced by the [`generate-autoreg` skill](/guide/generate-spec) end with an `AUTOREG-SIGNATURE-V1` footer — an Ed25519 signature added by the AutoReg cloud. On import, AutoReg verifies the signature:
+
+- **Valid signature** — spec imports as verified.
+- **No signature** (hand-written specs) — imports fine, flagged as *unverified*. This is normal and fully supported.
+- **Invalid signature** (file edited after signing) — flagged as tampered. Re-run the skill or remove the signature footer to import as unverified.
+
+Hand-written specs never need a signature. The signature only exists so generated specs can be trusted end-to-end.
+
+## Next steps
+
+- [Generating autoreg.md from source code](/guide/generate-spec) — let AI write the spec for you
+- [Generating tests](/guide/generate-tests) — turn the spec into an E2E test suite

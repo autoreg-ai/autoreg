@@ -1,23 +1,25 @@
 ---
 title: Generating Tests
-description: Create a project and run the AI agent to generate your Playwright test suite.
+description: Create a workflow and run the AI agent to generate your E2E test suite.
 ---
 
 # Generating Tests
 
-AutoReg uses a three-step agent workflow to generate tests. Each step calls a LangGraph tool that opens a headless browser, captures a live DOM snapshot, and writes files to disk.
+AutoReg uses a three-step agent workflow to generate tests. Each step calls an agent tool that opens a headless browser, captures a live DOM snapshot, and writes files to disk.
 
-## Step 1 — Create a new project
+> **Before you start:** you need an `autoreg.md` spec. [Generate it from your source code](/guide/generate-spec) (recommended) or [write it by hand](/guide/autoreg-md).
 
-1. Click **New Project** (or press `Ctrl+N`)
+## Step 1 — Create a new workflow
+
+1. Click **New Workflow** (or press `Ctrl+N`)
 2. Fill in the dialog:
-   - **Name** — human-readable project name
+   - **Name** — human-readable workflow name
    - **URL** — base URL of the application under test
    - **Spec** — paste your `autoreg.md` content (saved to disk automatically)
-3. Click **Select Folder** and choose where to save the project
+3. Click **Select Folder** and choose where to save the workflow
 4. Click **Create**
 
-The project folder is scaffolded immediately and the AR Agent starts in the right sidebar.
+The workflow folder is scaffolded immediately and the AR Agent starts in the right sidebar.
 
 ## Step 2 — The agent runs automatically
 
@@ -76,12 +78,12 @@ Click any `scenario-NNN.json` in the left sidebar's **Tests** panel to view it i
 
 The plan groups scenarios into sections. Click `e2e-plan.json` in the **Plans** panel to review the full structure.
 
-## Project folder structure after generation
+## Workflow folder structure after generation
 
 ```
-myproject/
+myworkflow/
 ├── autoreg.md                 ← your spec
-├── myproject.ar               ← manifest (JSON)
+├── myworkflow.ar               ← manifest (JSON)
 ├── tests/
 │   ├── scenario-001.json      ← positive test
 │   ├── scenario-002.json      ← negative test
@@ -95,7 +97,7 @@ myproject/
 You can also type commands directly in the chat panel:
 
 ```
-"Generate tests for my project at /Users/me/myproject"
+"Generate tests for my workflow at /Users/me/myworkflow"
 "What scenarios were generated?"
 "Add a test for password reset"
 "Regenerate scenario-003"

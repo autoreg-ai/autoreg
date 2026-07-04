@@ -5,33 +5,23 @@ description: Cheat sheet for common AutoReg commands and chat prompts.
 
 # Quick Reference
 
-## Setup commands
+## Setup
 
-```bash
-npm install                        # install dependencies
-npx playwright install chromium    # install browser
-npm run dev                        # start app (dev mode)
-npm run build && npm run package:electron  # build installer
-```
-
-## `.env` file
-
-```env
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4o-mini
-```
+1. Download the installer for your OS: [autoreg-ai.vercel.app/download](https://autoreg-ai.vercel.app/download)
+2. Launch AutoReg
+3. Install the **AutoReg: Skill Installer** VS Code extension to [auto-generate your spec](/guide/generate-spec)
 
 ## Keyboard shortcuts
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+N` | New Project |
+| `Ctrl+N` | New Workflow |
 
 ## Agent chat prompts
 
 ### Generation
 ```
-"Generate tests for my project at /path/to/project"
+"Generate tests for my workflow at /path/to/workflow"
 "Regenerate all tests"
 "Regenerate scenario-005"
 "Add a test for the export CSV button"
@@ -67,12 +57,12 @@ OPENAI_MODEL=gpt-4o-mini
 "Show me the plan"
 ```
 
-## Project folder layout
+## Workflow folder layout
 
 ```
-myproject/
+myworkflow/
 ├── autoreg.md           ← your spec (required for generation)
-├── myproject.ar         ← manifest (auto-managed)
+├── myworkflow.ar         ← manifest (auto-managed)
 ├── tests/
 │   └── scenario-NNN.json
 ├── plans/
@@ -83,21 +73,38 @@ myproject/
         └── artifacts/
 ```
 
+## Generating `autoreg.md` from source code
+
+In your AI coding agent (after installing the [skill](/guide/generate-spec)):
+
+```
+/generate-autoreg /path/to/autoreg-workflow /path/to/app/src
+```
+
 ## JSON Step DSL — quick action reference
 
 ```json
-{ "action": "navigate",   "selector": "https://..." }
+{ "action": "navigate",   "value": "https://..." }
 { "action": "click",      "selector": "[aria-label='Submit']" }
 { "action": "fill",       "selector": "[aria-label='Email']",  "value": "user@test.com" }
+{ "action": "select",     "selector": "#country",              "value": "US" }
+{ "action": "hover",      "selector": ".menu-trigger" }
+{ "action": "press",      "selector": "[aria-label='Search']", "value": "Enter" }
+{ "action": "scroll",     "selector": "#footer" }
 { "action": "assert",     "selector": "text=Welcome",          "assertionType": "visible" }
-{ "action": "wait",       "selector": ".spinner",              "timeout": 3000 }
+{ "action": "assert",     "selector": ".toast",                "assertionType": "contains", "expected": "Saved" }
+{ "action": "wait",       "selector": ".spinner",              "assertionType": "hidden", "timeout": 3000 }
+{ "action": "evaluate",   "value": "window.scrollTo(0, 0)" }
 { "action": "screenshot"  }
 ```
+
+**`assertionType`:** `visible` (default) · `hidden`/`not_visible`/`not_exists` · `exists` · `equals` · `contains`
 
 ## Full guide pages
 
 - [Installation](/guide/installation)
-- [Writing autoreg.md](/guide/autoreg-md)
+- [What is autoreg.md](/guide/autoreg-md)
+- [Generating autoreg.md](/guide/generate-spec)
 - [Generating Tests](/guide/generate-tests)
 - [Running & Managing Tests](/guide/manage-tests)
 - [Autohealing](/guide/autoheal)

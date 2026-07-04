@@ -1,6 +1,6 @@
 ---
 title: Autohealing Failing Tests
-description: How AutoReg analyzes test failures and regenerates broken scenarios automatically..
+description: How AutoReg analyzes test failures and regenerates broken scenarios automatically.
 ---
 
 # Autohealing Failing Tests
@@ -12,12 +12,12 @@ AutoReg's autoheal loop finds the root cause of a failing test and regenerates i
 ```
 Run test(s)
     ↓ failure detected
-test_run_analyzer
+analyze_test_runs
     Parses execution.log and failure artifacts
     Identifies: selector not found / assertion failed / navigation error / timeout
     Outputs root cause + suggested fix per scenario
     ↓
-test_regenerator
+regenerate_failed_test
     For selector failures: re-navigates the live page, captures DOM snapshot
     Generates corrected E2ESpecFile with updated selectors
     ↓
@@ -51,7 +51,7 @@ The agent runs the full loop: analyze → regenerate → apply.
 
 For targeted cases, the agent skips re-navigation and applies the fix directly.
 
-## What `test_run_analyzer` reports
+## What `analyze_test_runs` reports
 
 For each failing scenario:
 
@@ -65,7 +65,7 @@ For each failing scenario:
 
 High-confidence fixes (e.g. element moved but still exists with different ARIA label) are applied automatically. Low-confidence cases are shown in chat for your review before applying.
 
-## What `test_regenerator` does
+## What `regenerate_failed_test` does
 
 For `selector` failures:
 1. Opens a headed or headless browser
@@ -102,7 +102,7 @@ After a large UI change, run the full suite and then:
 "Heal all failing tests"
 ```
 
-The agent batches `test_run_analyzer` across all failures, then calls `test_regenerator` + `apply_scenario_fix` for each one. Progress is shown in the chat thread.
+The agent batches `analyze_test_runs` across all failures, then calls `regenerate_failed_test` + `apply_scenario_fix` for each one. Progress is shown in the chat thread.
 
 ## When autoheal cannot fix a test
 
@@ -121,7 +121,7 @@ Some failures require human judgment:
 "Regenerate scenario-006 from scratch using the current app"
 ```
 
-This triggers `generate_single_scenario`, which re-navigates the live page and generates a fresh test — discarding the old steps entirely.
+This triggers `generate_scenario_from_page`, which re-navigates the live page and generates a fresh test — discarding the old steps entirely.
 
 ## Tips
 

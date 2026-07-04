@@ -1,0 +1,98 @@
+---
+title: Generating autoreg.md
+description: Generate a complete, signed autoreg.md spec from your app's source code with the generate-autoreg AI skill.
+---
+
+# Generating `autoreg.md` from source code
+
+Writing a spec by hand works, but if you have the app's codebase, the **`generate-autoreg`** AI skill can do it better: it reads your routes, components, validation schemas, and auth flows, then writes a complete `autoreg.md` with confirmed selectors and realistic test data — self-verified and cryptographically signed.
+
+Tests generated from a skill-written spec typically pass on the first run, because every selector in the spec was confirmed to exist in your source code.
+
+## How it works
+
+```
+Your app source code
+        ↓
+generate-autoreg skill (runs inside your AI coding agent)
+        ↓  analyzes routes, components, schemas, auth
+        ↓  asks you for credentials, seed data, sample values
+        ↓  self-verifies every selector and scenario
+        ↓  signs the file via AutoReg cloud (Ed25519)
+autoreg.md
+        ↓  import into AutoReg
+E2E test suite
+```
+
+## Step 1 — Install the skill
+
+Install the **AutoReg: Skill Installer** extension (`autoreg.autoreg-skill-installer`) in VS Code (or any VS Code-compatible editor):
+
+1. Open the **AutoReg** panel in the activity bar.
+2. The extension detects which AI coding agents exist in your workspace — Claude Code (`.claude/`), Cursor (`.cursor/`), GitHub Copilot (`.github/`), Windsurf, Continue, Cline, Aider, Gemini CLI, Codex CLI, and more.
+3. Click **Install** next to your agent. The skill file is written in the right place and format for that tool (slash command, rule, or prompt).
+
+**No agent folder?** The skill is saved to `generate-autoreg/` in your workspace so you can attach it to any AI agent as context manually.
+
+## Step 2 — Run the skill in your agent
+
+In Claude Code, for example:
+
+```
+/generate-autoreg /path/to/autoreg-workflow /path/to/app/src
+```
+
+- **First argument** — your AutoReg workflow folder (where `autoreg.md` will be written). Optional if you run it from inside the workflow.
+- **Second argument** — the root of the application source code to analyze.
+
+## Step 3 — Answer the interview
+
+Before analyzing the codebase, the skill asks you up front for things it cannot read from source:
+
+- **Test credentials** — accounts for each role
+- **Seed data** — records that already exist in the test environment
+- **Sample values** — realistic inputs for forms (names, amounts, dates)
+
+Secrets you provide are stored as `{{placeholder}}` tokens in the spec — never in plaintext. AutoReg resolves them at import time.
+
+## Step 4 — Review the generated spec
+
+The skill writes an `autoreg.md` containing:
+
+| Section | What's in it |
+|---------|-------------|
+| **Selectors, tier-ranked** | `data-testid` → `id` → form semantics → ARIA → text. Unreliable selectors (hashed CSS-module classes, styled-components hashes, generated ids) are explicitly blocked. |
+| **Every route** | Extracted across React, Next.js, Remix, Vue/Nuxt, Angular, Svelte, Astro, Rails, Django, Laravel, Spring, ASP.NET, plain HTML, and REST APIs — including auth requirements per route. |
+| **Domain types & validation schemas** | Copied verbatim — powering realistic test data and exact-error-text negative scenarios. |
+| **Page behaviours** | Loading/transition patterns, network vs. client-side interactions, debounced search, modals, toasts. |
+| **Auth flows** | Login/logout/registration steps, role matrix, fresh-user pattern. |
+| **Test Data Catalog** | User-provided, seeded, and generated values; secrets as `{{placeholder}}` tokens. |
+| **8–25 test scenarios** | Positive and negative, self-contained, using only confirmed selectors and catalogued data — self-verified before the file is written. |
+
+The file ends with an `AUTOREG-SIGNATURE-V1` footer — an Ed25519 signature from the AutoReg cloud.
+
+## Step 5 — Import into AutoReg
+
+Create a new AutoReg workflow (or open an existing one) pointing at the folder containing the generated `autoreg.md`. On import, AutoReg:
+
+1. **Verifies the signature** — tampered files are rejected; unsigned files import as *unverified* (fine for hand-written specs).
+2. **Resolves `{{placeholder}}` tokens** — you are prompted for secret values, which are stored encrypted (OS keychain on Mac, DPAPI on Windows), never written to the spec.
+3. **Starts test generation** — see [Generating tests](/guide/generate-tests).
+
+## Editing a generated spec
+
+You can edit a generated `autoreg.md` freely — add scenarios, tweak descriptions, update credentials. Editing invalidates the signature, so the file imports as *unverified* afterward. That is expected and harmless; re-run the skill if you want a freshly signed spec.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| Skill not offered in the agent | Re-open the AutoReg panel and click **Install**; check the `autoreg.autoDetect` setting is enabled. |
+| "File was not generated by the generate-autoreg skill" on import | The spec is unsigned (hand-written or pre-signing). It imports as unverified — no action needed. |
+| Signature invalid after editing | Expected — edits invalidate the signature. Import as unverified or regenerate. |
+| Selectors in the spec don't match the deployed app | The deployed version differs from the analyzed source. Re-run the skill against the branch that is actually deployed. |
+
+## Next steps
+
+- [Generating tests](/guide/generate-tests) — run the 3-step agent on your new spec
+- [What is autoreg.md](/guide/autoreg-md) — spec format reference, hand-writing guide
