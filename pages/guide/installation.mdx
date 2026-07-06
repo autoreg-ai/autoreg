@@ -28,13 +28,24 @@ AutoReg works out of the box with the default model. You can switch models any t
 
 More model providers are coming soon.
 
-## 3. Install the spec-generator extension
+## 3. Install the AutoReg skill
 
-The **AutoReg: Skill Installer** extension for VS Code (and VS Code-compatible editors) installs the `generate-autoreg` AI skill into your coding agent — Claude Code, Cursor, GitHub Copilot, Windsurf, Cline, and more. The skill analyzes your app's source code and writes a complete, signed `autoreg.md` spec automatically, so you don't have to write one by hand.
+`autoreg.md` — the spec AutoReg needs to generate your tests — is produced by the **AutoReg: Skill Installer** extension, not written by hand. It installs in seconds into any repository, application, or project:
 
-1. In VS Code, open **Extensions** and search for **AutoReg: Skill Installer** (publisher: `autoreg`).
-2. Open the **AutoReg** panel in the activity bar.
-3. Click **Install** next to the coding agents detected in your workspace.
+1. In VS Code (or any VS Code-compatible editor), open **Extensions** and search for **AutoReg: Skill Installer** (publisher: `autoreg`).
+2. Open the **AutoReg** panel in the activity bar. It detects the AI coding agent already in your workspace — Claude Code, Cursor, GitHub Copilot, Windsurf, Cline, and more.
+3. Click **Install** next to the coding agent you use.
+
+Run the skill from your coding agent to generate `autoreg.md` for your app:
+
+- **Agent detected** — type the slash command in your coding agent's chat:
+  ```
+  /generate-autoreg
+  ```
+- **No agent detected** — a `generate-autoreg/` folder is created in your workspace with the skill inside it. Reference it directly in your agent's chat:
+  ```
+  @generate-autoreg/generate-autoreg.md
+  ```
 
 Full walkthrough: [Generating autoreg.md](/guide/generate-spec).
 
@@ -54,6 +65,7 @@ Max 100 MB per file; archived with `_N` suffix on rotation.
 - [ ] Installer downloaded from [autoreg-ai.vercel.app/download](https://autoreg-ai.vercel.app/download) and app installed
 - [ ] AutoReg launches
 - [ ] **AutoReg: Skill Installer** extension installed in your editor
+- [ ] `autoreg.md` generated with the skill
 
 ## Next steps
 

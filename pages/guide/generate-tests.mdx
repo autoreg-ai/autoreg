@@ -7,7 +7,7 @@ description: Create a workflow and run the AI agent to generate your E2E test su
 
 AutoReg uses a three-step agent workflow to generate tests. Each step calls an agent tool that opens a headless browser, captures a live DOM snapshot, and writes files to disk.
 
-> **Before you start:** you need an `autoreg.md` spec. [Generate it from your source code](/guide/generate-spec) (recommended) or [write it by hand](/guide/autoreg-md).
+> **Before you start:** you need an `autoreg.md` spec. [Generate it with the AutoReg skill](/guide/generate-spec) — see [what the spec contains](/guide/autoreg-md).
 
 ## Step 1 — Create a new workflow
 
@@ -106,6 +106,6 @@ You can also type commands directly in the chat panel:
 ## Tips
 
 - **If generation stalls** — the agent has a recursion limit of 200 tool calls; for large specs (30+ scenarios) it should complete without hitting this. If it does, type "continue generation" in chat.
-- **If `autoreg.md` is missing** — `init` returns an error immediately. Create the file and type "retry generation".
+- **If `autoreg.md` is missing** — `init` returns an error immediately. Generate the spec with the AutoReg skill and type "retry generation".
 - **Skipped scenarios** — if a single test fails to generate (malformed LLM response), it is marked `skipped` and generation continues. Re-run with "regenerate skipped tests".
 - **Changing the model mid-generation** — use the model selector in the chat composer. The graph uses the new model from the next tool call onward.

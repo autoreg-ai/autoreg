@@ -11,7 +11,7 @@ AutoReg is a **test automation desktop app** that reads your `autoreg.md` spec, 
 
 | Step | What happens |
 |------|-------------|
-| **1. Get a spec** | Describe your app in `autoreg.md` — [generate it from source code](/guide/generate-spec) with the `generate-autoreg` AI skill, or [write it by hand](/guide/autoreg-md) |
+| **1. Get a spec** | [Generate `autoreg.md`](/guide/generate-spec) for your app with the `generate-autoreg` AI skill |
 | **2. Generate** | The AI agent opens your app in a headless browser, captures live DOM snapshots, and generates `scenario-NNN.json` test files |
 | **3. Plan** | Tests are grouped into logical sections in `plans/e2e-plan.json` |
 | **4. Run** | Execute individual tests or the full suite with one click |
@@ -34,7 +34,7 @@ Full walkthrough: [Installation](/guide/installation) → [What is autoreg.md](/
 ## Core features
 
 - **Browser-grounded generation** — uses real ARIA selectors from live DOM, not guessed selectors
-- **Source-grounded specs** — the [`generate-autoreg` skill](/guide/generate-spec) writes `autoreg.md` from your codebase with confirmed selectors, signed by AutoReg cloud
+- **Source-grounded specs** — the [`generate-autoreg` skill](/guide/generate-spec) writes `autoreg.md` from your codebase with confirmed selectors, verified automatically when imported
 - **Live progress** — accordion panel updates as each test is generated
 - **JSON Step DSL** — portable interchange format; readable and editable
 - **Autoheal loop** — `analyze_test_runs` → `regenerate_failed_test` → `apply_scenario_fix`
@@ -43,7 +43,7 @@ Full walkthrough: [Installation](/guide/installation) → [What is autoreg.md](/
 ## Quick navigation
 
 - [Installation](/guide/installation) — download, install, first launch
-- [What is autoreg.md](/guide/autoreg-md) — spec concept, format, hand-writing guide
+- [What is autoreg.md](/guide/autoreg-md) — what the spec is and what it contains
 - [Generating autoreg.md](/guide/generate-spec) — auto-generate the spec from source code
 - [Generating tests](/guide/generate-tests) — create a workflow and run the 3-step agent
 - [Running and managing tests](/guide/manage-tests) — execute, review, edit scenarios
