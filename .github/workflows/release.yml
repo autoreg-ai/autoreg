@@ -1,0 +1,53 @@
+name: Release
+
+# Tags are created from the version already in package.json by
+# `npm run release` (this repo's version is synced in from autoreg-agent, not
+# bumped here). Pushing the tag triggers this workflow, which publishes a
+# GitHub Release. Site deploys are handled separately by deploy.yml on push to
+# main.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag is on main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag does not point to a commit on main. Releases must be tagged from main."
+            exit 1
+          fi
+
+      - name: Verify tag matches package.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PKG_VERSION. Tag releases with 'npm run release'."
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          # Pull this version's section out of CHANGELOG.md (## vX.Y.Z - DATE ... until next ##)
+          awk -v ver="$VERSION" '$1 == "##" && $2 == ver {found=1; next} $1 == "##" {found=0} found' CHANGELOG.md > release-notes.md
+          if [ -s release-notes.md ]; then
+            gh release create "$VERSION" --title "$VERSION" --notes-file release-notes.md
+          else
+            echo "No CHANGELOG.md entry for $VERSION — falling back to auto-generated notes."
+            gh release create "$VERSION" --title "$VERSION" --generate-notes
+          fi
