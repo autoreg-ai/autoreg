@@ -1,7 +1,7 @@
 {
   "name": "autoreg-docs",
   "private": true,
-  "version": "0.3.12",
+  "version": "0.3.30",
   "description": "Autoreg technical documentation website",
   "scripts": {
     "dev": "next dev",
