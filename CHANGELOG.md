@@ -1,9 +1,5 @@
 # Changelog
 
-## v0.3.30 - 2026-07-10
-
-- No changes recorded
-
 ## v0.3.29 - 2026-07-10
 
 - Merge pull request #8 from autoreg-ai/SIT-1 (9166ef7)
