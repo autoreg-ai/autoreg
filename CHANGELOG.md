@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.3.30 - 2026-07-12
+
+- feat: enhance OpenAI integration with improved error handling and message structure refactor: streamline spec context packing and scenario message generation fix: update App component to reference autoreg spec from disk instead of embedding (6efd151)
+- Test generation logic fixes (5c3d7fb)
+- package.json updated with correct version (06a5dba)
+- log correction (f36789f)
+- feat: add update-docs command to sync changelog and version to docs project (c75ab68)
+
+# Changelog
+
+## v0.3.30 - 2026-07-10
+
+- No changes recorded
+
 ## v0.3.29 - 2026-07-10
 
 - Merge pull request #8 from autoreg-ai/SIT-1 (9166ef7)
