@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.3.34 - 2026-07-14
+
+- fix: enhance device tracking by adding public IP handling and improving device recording logic (a126ab7)
+- fix: update auto-organize tool to modify the project's single plan file and improve JSON handling in Markdown rendering (bac026f)
+
+## v0.3.33 - 2026-07-13
+
+- fix: refactor MCP CLI path resolution to use resolvePackagedAtPlaywrightPath for consistency (cda1344)
+
+## v0.3.32 - 2026-07-13
+
+- fix: remove unnecessary environment variable and ensure browser preparation step is included for Windows and macOS builds (a8a504b)
+
 ## v0.3.31 - 2026-07-12
 
 - 0.3.30 (abb2f5b)
