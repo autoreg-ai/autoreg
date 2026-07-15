@@ -1,8 +1,12 @@
 # Changelog
 
+## v0.3.35 - 2026-07-15
+
+- fix: refactor MCP command handling and enhance error reporting in ToolStatus component (b84a9cb)
+
 ## v0.3.34 - 2026-07-14
 
-- fix: enhance device tracking by adding public IP handling and improving device recording logic (a126ab7)
+- fix: enhance device tracking and improving device recording logic (a126ab7)
 - fix: update auto-organize tool to modify the project's single plan file and improve JSON handling in Markdown rendering (bac026f)
 
 ## v0.3.33 - 2026-07-13
