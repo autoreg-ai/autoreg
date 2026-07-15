@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.36 - 2026-07-15
+
+- fix: implement single test run restriction and enhance user prompts for active runs (8999a19)
+- fix: update GitHub Actions to use latest versions of checkout and setup-node (492c308)
+- fix: correct changelog entry for device tracking enhancement (eb6f432)
+
+# Changelog
+
 ## v0.3.35 - 2026-07-15
 
 - fix: refactor MCP command handling and enhance error reporting in ToolStatus component (b84a9cb)
