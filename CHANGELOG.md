@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.37 - 2026-07-17
+
+- feat: implement reporting features for AI-generated content and contact support (9363177)
+- feat: add machine_id tracking and enhance public IP logging during startup (7b25d91)
+
 ## v0.3.36 - 2026-07-15
 
 - fix: implement single test run restriction and enhance user prompts for active runs (8999a19)
