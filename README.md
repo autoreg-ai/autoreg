@@ -22,7 +22,7 @@ AutoReg is a test automation desktop app that reads a plain-language spec of you
 
 ## Downloading and installing
 
-1. Go to **[autoreg-ai.vercel.app/download](https://autoreg-ai.vercel.app/download)** and download the installer for your OS.
+1. Go to **[autoreg.sh/download](https://autoreg.sh/download)** and download the installer for your OS.
 
    | OS | Installer |
    |----|-----------|
