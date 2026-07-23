@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.38 - 2026-07-23
+
+- feat: rename AR Agent to Reggie across documentation and localization files (5082c2e)
+- Add localization for application strings (45f0fdc)
+- feat: extend OAuth timeout and enhance loading state handling in LoginScreen (594a8d4)
+
 ## v0.3.37 - 2026-07-17
 
 - feat: implement reporting features for AI-generated content and contact support (9363177)
