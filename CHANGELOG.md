@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.39 - 2026-09-15
+
+- Merge pull request #9 from autoreg-ai/firebase_1 (3b64f08)
+- feat: implement password reset functionality and update localization strings (05275ee)
+- feat: add legacy Supabase schema for content reports and user devices (f548d43)
+- fix: clear context chip after sending message to prevent lingering state (4d5c601)
+
+# Changelog
+
 ## v0.3.38 - 2026-07-23
 
 - feat: rename AR Agent to Reggie across documentation and localization files (5082c2e)
