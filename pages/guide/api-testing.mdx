@@ -1,0 +1,108 @@
+---
+title: API Testing
+description: Generate and run HTTP API tests from an API spec — no browser — and change any input value without regenerating.
+---
+
+# API Testing
+
+AutoReg tests two kinds of application: a **UI** (browser end-to-end tests) and an **HTTP API** (request/response tests, no browser). Both start the same way — the `generate-autoreg` skill reads your code and writes a signed `autoreg.md` — and both run inside the same AutoReg workflow experience. This page covers what is different for APIs.
+
+## 1. Generate the API spec
+
+Run the skill from your coding agent as usual:
+
+```
+/generate-autoreg /path/to/autoreg-workflow /path/to/api/src
+```
+
+The skill detects that the project is an API (a server framework in `package.json` / `requirements.txt` / `pom.xml` / `go.mod`, route-handler folders, or an OpenAPI file) and prints its evidence:
+
+```
+Project type: API (evidence: @nestjs/core in package.json; src/orders/orders.controller.ts uses @Controller)
+```
+
+It then runs the `generate-api-autoreg` generator, which asks you up front for:
+
+- the API base URL (including any global prefix such as `/api/v1`) and whether tests may ignore TLS errors
+- credentials or a pre-issued token per role, and whether scenarios should log in themselves (recommended)
+- which endpoints may write, and whether there is a cleanup endpoint
+- seed data — known record ids, list sizes, search terms with known counts
+- sample payloads for domain-specific request bodies
+
+A project that has **both** a UI and an API gets two specs in two workflow folders (`<folder>` for the UI, `<folder>-api` for the API), with one question between them. Force a type with `--ui`, `--api` or `--both`. Libraries and command-line tools are not supported — the skill says so and stops.
+
+## 2. What the API spec contains
+
+| Section | What's in it |
+|---------|-------------|
+| **API Endpoints** | Every operation read from the route registrations — method, full path, auth requirement, request and response models, every status it can return, side effects, idempotency. An OpenAPI file is read first and confirmed against the code. |
+| **Request Models / Response Models** | Copied verbatim, plus a validation table: field → rule → the exact status and error message the API returns. |
+| **Error Contracts** | The global error envelope and every message string, so negative scenarios assert exactly what the API says. |
+| **Authentication & Test Accounts** | The token flow as concrete request/response pairs, how the token is sent, the role matrix. |
+| **Endpoint Behaviors** | Pagination, filtering, ordering dependencies (create → read → delete), idempotency keys, eventual consistency. |
+| **Test Data Catalog** | Every body, query and header value as a `{{token}}`; secrets stay pending until you set them in Test Parameters. |
+| **Invalid Variants** and **Known Records** | Failing values with their expected status and message; seeded ids and counts that may be asserted exactly. |
+| **8–30 scenarios** | Self-contained: each obtains its own token, creates what it reads, deletes what it created. |
+
+The file is signed exactly like a UI spec and imports the same way — the New Workflow dialog shows an **API SPEC** badge and asks for the API base URL.
+
+### Scenario steps
+
+API scenarios use a small step grammar that AutoReg parses deterministically:
+
+```
+- Request POST /auth/login with body {"email": "{{user_email}}", "password": "{{user_password}}"}
+- Verify status is 200
+- Save response body path "accessToken" as {{auth_token}}
+- Set header "Authorization" to "Bearer {{auth_token}}"
+- Request GET /orders/{{order_id}} with query {"expand": "items"}
+- Verify response header "content-type" contains "application/json"
+- Verify response body path "error.code" equals "VALIDATION_ERROR"
+- Verify response body path "items" has length 1
+- Wait 500 ms
+```
+
+Body paths use dot and bracket syntax only (`data.items[0].id`, `meta.total`). Values captured with `Save … as {{name}}` are usable in later steps of the same scenario.
+
+## 3. Generate and run the tests
+
+Create a workflow from the spec. Reggie recognises the API spec and runs the API generation flow — no browser opens:
+
+```
+init_api_test_generation      reads the spec, enumerates its scenarios and endpoints
+generate_next_api_test        translates one scenario into HTTP steps, validates every
+                              request against the endpoint table, writes tests/scenario-NNN.json
+generate_api_plan             groups the tests into sections by resource
+```
+
+Every generated test is checked against the spec: a request to an endpoint the spec does not list, or a `{{token}}` nothing defines, is corrected or rejected before the file is written.
+
+Run a scenario from the sidebar (API tests carry an **API** chip) or ask Reggie. Each run captures the request and response of every step under `runs/<run>/artifacts/http/` with secrets masked, plus `diagnostics.json` for any 5xx or transport failure. The **Runs** tab's preview shows the exchanges — request on the left, response on the right — instead of screenshots.
+
+## 4. Change any input without regenerating
+
+Every value an API scenario sends or asserts is a **test parameter**. There are two places to change one:
+
+- **Test Parameters** (the environment) — changes the value for every scenario in that environment. API workflows add two parameter types: `json` (a request body) and `boolean`.
+- **The scenario's Parameters tab** — changes the value for **that scenario only**, in the active environment. Edit a value inline, run, and reset when done. The stored test and the shared value are untouched.
+
+You can also ask Reggie: *"Run the create-order scenario with quantity 0"*. It sets the override for that scenario and runs it — one confirmation.
+
+Resolution order at run time: a value captured earlier in the scenario (`Save … as`) → the scenario's override → the environment value → a built-in (`{{base_url}}`, `{{timestamp}}`, `{{uuid}}`, `{{now_iso}}`). A token that resolves to nothing fails the step before anything is sent — an API test never sends literal braces to a server.
+
+## 5. Failures, deltas and defects — the same loop
+
+- **A failed step** names the path, the actual value and the expectation: `body path "error.code" is "BAD_REQUEST", expected "VALIDATION_ERROR"`. Reggie diagnoses from the captured exchange (no debug browser) and classifies it as an app defect, a test defect, spec drift or an environment problem, exactly like a UI failure.
+- **Change your API, re-run the skill** — delta mode regenerates only the scenarios your change touched; *"apply the spec delta"* previews path, status and message updates before touching any test.
+- **App defects** are filed for your coding agent with the failing request and response as evidence.
+
+## Requirements
+
+- AutoReg 0.4.0 or later (older versions import an API spec but would try to open a browser for it)
+- AutoReg: Skill Installer 1.4.0 or later (the router, `generate-ui-autoreg` and `generate-api-autoreg` install together)
+- Multipart file uploads, streaming/SSE/WebSocket endpoints and OAuth redirect flows are documented by the skill as out of scope in this version
+
+## Next steps
+
+- [Generating autoreg.md](/guide/generate-spec) — the skill and the interview
+- [Running & Managing Tests](/guide/manage-tests) — runs, artifacts and manual edits

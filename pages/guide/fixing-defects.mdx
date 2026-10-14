@@ -1,0 +1,189 @@
+---
+title: Fixing Defects with Your Coding Agent
+description: When a test fails because the app is wrong, AutoReg files a defect for your coding agent and verifies the fix when it comes back.
+---
+
+# Fixing Defects with Your Coding Agent
+
+Not every failed test is a broken test. When the *application* violates its own specification, rewriting the test would only hide a real bug. AutoReg tells the two apart, hands application defects to your coding agent — Claude Code, Cursor, Codex, Devin, or any of the 16 tools the skill installer supports — and verifies the fix when it comes back.
+
+## Who is wrong?
+
+After every failed run, Reggie triages before proposing anything. The signals are deterministic and come from files, not guesses:
+
+| Signal | Points to |
+|--------|-----------|
+| The failed step asserts a text or selector the **spec explicitly states** | the app |
+| The scenario **passed before** with the same test body | the app (a regression) |
+| **Console errors, page errors, failed requests or 5xx responses** captured during the run | the app |
+| The element exists on the live page **under a different name** | the test |
+| Your **source changed** after `autoreg.md` was generated | the spec is stale — re-run `generate-autoreg` first |
+| The app was **unreachable** | the environment |
+| A timeout-shaped failure that **passes on one retry** | flaky — nothing to fix |
+
+The result is a classification with a confidence and its reasons. For a **test defect** the flow is the one described in [Autohealing](/guide/autoheal). For an **app defect** Reggie never offers to change the test; it offers to file a defect:
+
+```
+"This looks like a bug in the app, not the test."
+  [File a defect for my coding agent]  [It's the test — fix the test]  [Ignore for now]
+```
+
+## Tests you add in chat
+
+A test added through chat is not in `autoreg.md`, so Reggie links it to an app **feature** instead. When it generates the steps it matches the page, routes and selectors against the spec baseline and shows the match in the save step:
+
+```
+Feature: Login — matched by route /login, selector [data-testid=login-error]
+  [Save it]  [Link to a different feature]  [I want to make changes]
+```
+
+That link is what a later defect on the test hands to your coding agent: the feature's source files, selectors and error texts, and the features that depend on it. You can link an existing test any time: "this test belongs to the Checkout feature".
+
+## What gets filed
+
+With your approval, Reggie writes a self-contained record into your workflow folder:
+
+```
+myworkflow/.autoreg/
+├── defects/
+│   ├── DEF-0003.json          ← the defect (see below)
+│   ├── DEF-0003/
+│   │   ├── failing-step.png   ← screenshot at the failing step
+│   │   ├── live-snapshot.txt  ← accessibility snapshot of the page
+│   │   └── diagnostics.json   ← console errors, page errors, failed requests
+│   └── index.json             ← summary of every defect and its status
+└── fixes/
+    └── DEF-0003.fix.json      ← written by your coding agent (see below)
+```
+
+The record carries what a developer needs to start immediately:
+
+- **Expected vs. actual** — the spec's own scenario block and expectation, the failing step, the error
+- **Where to look** — the feature's source files, routes, selectors and error texts from the spec baseline
+- **Evidence** — the screenshot, the live page snapshot, what the app logged, when the scenario last passed
+- **Reproduction steps** — with test parameters as `{{tokens}}`; secrets never leave your environment file
+
+Your workflow folder is independent of your app's code, so your coding agent cannot find the defect on its own — you hand it the path. Reggie's reply shows a card with the defect's path and the ready-made command, each with a **copy button**:
+
+```
+Defect   C:/Users/me/workflows/shop/.autoreg/defects/DEF-0003.json   [copy]
+Command  /fix-autoreg-defect "C:/Users/me/workflows/shop/.autoreg/defects/DEF-0003.json"   [copy]
+```
+
+Paste the command into your coding agent, or run the skill without arguments and paste the path when it asks. In VS Code, the **AutoReg: Fix a Defect…** command does the same: paste the path, pick the agent, and it opens a terminal with the agent started on the defect.
+
+## What your coding agent does
+
+The `fix-autoreg-defect` skill (installed next to `generate-autoreg`) walks the agent through it:
+
+1. **Asks for the defect path** if you did not pass it, then **claims** the defect by writing `fixes/DEF-0003.fix.json` with `status: "in-progress"`
+2. **Reads** the record and the evidence, starting from the feature's source files
+3. **Traces** the failing step to the code — a `file:line` in a page error is usually the shortest path
+4. **Decides**: a real defect, `not-a-bug` (the spec cites something that was never true in source), `cannot-reproduce`, or `needs-info` with concrete questions
+5. **Fixes the application** — never the tests, never `autoreg.md`
+6. If the fix changed anything the spec states, **re-runs `generate-autoreg`** in delta mode so the spec follows
+7. **Reports** — root cause, files changed, whether behaviour changed, which scenarios to re-run
+
+Each side writes only its own files. AutoReg owns `defects/`; the agent owns `fixes/`. The report pins the defect's revision, so a report written against a defect that was reopened meanwhile is rejected rather than merged.
+
+## Running it again before the fix
+
+You will run the scenario again — to check it is still broken, or out of habit. Reggie does not start over. Before any analysis it looks for an open defect on that scenario and compares the failing step:
+
+- **Same step** → no debug session, no analysis. Reggie says which defect it is, its status, and what happens next for that status:
+
+  ```
+  Search with fewer than 3 characters failed again at step 4 — that is DEF-0002
+  (status: in progress; claude-code is working on it). Run it again once a fix is reported.
+  ```
+
+  The run is recorded on the defect as a recurrence, so the defect keeps its own "still failing" trail. It never offers to fix the test for a tracked failure. If you are sure the test is wrong, close the defect as not-a-bug first.
+- **Different step** → that is a new failure. Reggie diagnoses it as usual and mentions the open defect in one line.
+- **Passed** → Reggie says the defect is still open. If your coding agent reported a fix, it offers to verify it; otherwise it suggests one more run before touching the defect.
+
+The same applies to runs a coding agent triggers over MCP and to `autoreg run` in CI: the results carry `knownDefect`, and CI never files a second defect for a tracked failure.
+
+## Verifying the fix
+
+When a fix report arrives — your agent wrote it locally, or it came in with a git checkout — AutoReg shows a toast and the chat context lists the defect as *fix-reported*. Say:
+
+```
+"verify fixes"
+"did my agent fix DEF-0003?"
+```
+
+Reggie shows what the agent claims and asks once. Then it:
+
+1. applies a pending spec delta first, if the agent regenerated the spec (with the usual preview and approval);
+2. re-runs the defect's scenario **and the scenarios of features that depend on it** (login broken → dashboard re-checked);
+3. marks the defect **resolved** when everything passes, or **reopens** it with the failing step for the agent to look at again.
+
+Three failed verifications park the defect for a human. If the agent disputes the defect (`not-a-bug`), you decide: close it, reopen it with a note, or fix the test instead.
+
+## Working with remote agents
+
+Devin, Codex cloud tasks and the Copilot coding agent only see the repository, and your workflow folder is not in it. The defect record is self-contained, so paste the contents of `DEF-0003.json` (plus `live-snapshot.txt` and `diagnostics.json` if useful) into the agent's session. When it is done, save its fix report as `<workflow>/.autoreg/fixes/DEF-0003.fix.json` and AutoReg offers verification as usual.
+
+## Live connection over MCP
+
+While a workflow is open, the AutoReg app serves the same defect tools over MCP on localhost. In VS Code, click **MCP** next to your agent in the AutoReg panel (or run *AutoReg: Connect a Coding Agent over MCP*): the extension puts a small shim in `<workflow>/.autoreg/mcp/` and adds an `autoreg` server to the agent's project config (`.mcp.json` for Claude Code, `.cursor/mcp.json`, `.vscode/mcp.json`, and others). Your agent can then:
+
+| Tool | What it does |
+|------|--------------|
+| `autoreg_status` | Is AutoReg running, which workflow, how many defects are waiting |
+| `autoreg_list_defects` / `autoreg_get_defect` | Read defects and their evidence |
+| `autoreg_claim_defect` / `autoreg_submit_fix_report` | Write the fix report (contract-checked) |
+| `autoreg_run_scenarios` | Re-run the defect's scenario live — AutoReg asks you to allow it the first time in a session |
+| `autoreg_get_run` / `autoreg_get_spec_scenario` | Run details and the spec's own scenario block |
+
+When the app is not running the shim still answers, telling the agent to work from the files instead of hanging.
+
+## Headless: the `autoreg` CLI
+
+The CLI runs generated tests and the defect protocol without the desktop app. For installation, separate app and workflow paths, test parameters, and a complete CI example, see [Run AutoReg from the CLI and CI](/guide/cli).
+
+```
+autoreg run <workflow> --all --json               # run everything; exit 1 on any failure
+autoreg run <workflow> --all --file-defects=high  # CI opt-in: file high-confidence app defects
+autoreg triage <workflow> --scenario 002          # the deterministic classification of the last failed run
+autoreg defects list --open                       # what is waiting, and what your agent reported
+autoreg verify --yes                              # re-run the reported fixes and resolve or reopen
+autoreg mcp <workflow>                            # serve the MCP tools over stdio without the app
+autoreg a2a <workflow>                            # serve the A2A task endpoint + agent card over HTTP
+```
+
+The CLI never applies a spec delta — that stays in the app with its preview and approval. Unattended filing is bounded: only app defects with high confidence, one per feature per run, at most `--max-defects` (default 3), and nothing at all when most of the run failed.
+
+## Agent-to-Agent (A2A)
+
+Every defect is also an [A2A](https://a2a-protocol.org) task. While a workflow is open the app serves an Agent Card at `http://127.0.0.1:<port>/.well-known/agent-card.json` and the JSON-RPC 1.0 endpoint at `/a2a` (same port and token as MCP, from `<workflow>/.autoreg/session.json`); `autoreg a2a <workflow>` serves the same without the app. An A2A client can `ListTasks`, `GetTask` (the record, evidence and fix report come back as artifacts), and `SendMessage` to a task — a text part claims it, a data part submits the fix report. `CancelTask` is refused: only you close a defect, in AutoReg.
+
+## The Defects panel
+
+The bug icon in the activity bar lists every defect with its status. Click one to open the **defect page** — a bug report, not a JSON file:
+
+- the status, severity and classification at the top, with **Open scenario**, **Ask Reggie** (or **Verify fix** once a fix is reported), reload, and a raw-JSON toggle
+- the hand-off box with the defect path and the `/fix-autoreg-defect` command, each with a copy button, while the defect still needs a coding agent — replaced by the agent's report (status, summary, root cause, files changed, questions) once it has claimed the defect
+- why AutoReg blames the app and not the test, and what else it considered
+- where it fails: the failing step with its selector and error, the run, environment and browser, and the screenshot taken at that step
+- what the spec expects, the feature's source files, routes and selectors, the reproduction steps
+- what the app said (console and page errors, failed requests), every run since filing, and the history
+
+In the list, **Verify fix** appears when a coding agent has reported, and **Review** when it disputes the defect or needs information.
+
+## Questions you can ask
+
+```
+"What bugs are open?"
+"What happened to DEF-0002?"
+"Close DEF-0004 — it's not a bug"
+```
+
+## Defect lifecycle
+
+```
+handed-off → in-progress → fix-reported → verifying → resolved
+                 │              │                         │
+                 │              └─ needs-info → input-required   fail → reopened (max 3) → needs-human
+                 └─ not-a-bug / wont-fix → disputed → closed
+```

@@ -1,46 +1,56 @@
 ---
 title: Autohealing Failing Tests
-description: How AutoReg analyzes test failures and regenerates broken scenarios automatically.
+description: How AutoReg triages a failure, heals tests that are actually broken, and hands real application bugs to your coding agent.
 ---
 
 # Autohealing Failing Tests
 
-AutoReg's autoheal loop finds the root cause of a failing test and regenerates it against the live app — no manual selector hunting required.
+When a scenario fails, AutoReg first decides **who is wrong** — the test, the application, the spec, or the environment — and only then proposes a fix. Tests that are genuinely broken (a selector moved, a label changed) are healed against the live app. Failures where the *application* violates the spec are never healed away; they become defects for your coding agent (see [Fixing Defects](/guide/fixing-defects)).
 
-## The autoheal workflow
+## The triage step
+
+After a failed run, `run_tests` diagnoses the failure with:
+
+- the exact failed step and error from `execution.log`;
+- the **spec's own scenario block** for this test — the reference for what the app should do;
+- **run history** — when it last passed, and whether the test body was the same;
+- **captured diagnostics** — console errors, page errors, failed requests and 5xx responses recorded during the run (`diagnostics.json` in the run folder);
+- **source drift** — whether the feature's source files changed since `autoreg.md` was generated;
+- a live accessibility snapshot of the page, taken right then.
+
+The result is a classification:
+
+| Classification | Meaning | What Reggie offers |
+|----------------|---------|--------------------|
+| `test-defect` | the element exists under a different selector/label, or the test asserts something the spec never stated | a page-grounded fix to the test, applied only after you approve |
+| `app-defect` | the spec states the expectation and the live app violates it | file a defect for your coding agent — never a test edit |
+| `spec-drift` | your source changed after the spec was generated | re-run `generate-autoreg` (delta mode), then run again |
+| `environment` | the app was unreachable | check the app is running; rerun |
+| `flaky` | a timeout-shaped failure passed on one automatic retry | nothing to fix |
+
+Every classification comes with a confidence (`high`, `medium`, `low`) and the reasons behind it. The diagnosis is saved as `diagnosis.json` in the run folder.
+
+## Healing a test defect
 
 ```
 Run test(s)
-    ↓ failure detected
-analyze_test_runs
-    Parses execution.log and failure artifacts
-    Identifies: selector not found / assertion failed / navigation error / timeout
-    Outputs root cause + suggested fix per scenario
-    ↓
-regenerate_failed_test
-    For selector failures: re-navigates the live page, captures DOM snapshot
-    Generates corrected E2ESpecFile with updated selectors
-    ↓
+    ↓ failure classified as test-defect
+Reggie presents the issue and the proposed fix, grounded in the live page
+    ↓ you approve
 apply_scenario_fix
-    Writes corrected scenario-NNN.json to disk
-    Updates .ar manifest
-    ↓
-Re-run test to verify fix
+    Writes the corrected scenario-NNN.json
+    Re-runs the scenario to confirm
 ```
 
-## Triggering autoheal
-
-### From the chat panel
-
-After a failed run, type:
+### Triggering it from chat
 
 ```
 "Fix the failing tests"
-"Analyze and heal scenario-004"
+"Heal scenario-004"
 "Why is scenario-007 failing?"
 ```
 
-The agent runs the full loop: analyze → regenerate → apply.
+For pure questions ("why did it fail?", "when did it last pass?") Reggie uses `analyze_test_runs` only — no browser, no changes.
 
 ### Targeted healing
 
@@ -49,49 +59,18 @@ The agent runs the full loop: analyze → regenerate → apply.
 "The email field on /signup now has aria-label 'Work email', update scenario-002"
 ```
 
-For targeted cases, the agent skips re-navigation and applies the fix directly.
-
-## What `analyze_test_runs` reports
-
-For each failing scenario:
-
-| Field | Description |
-|-------|-------------|
-| `scenarioId` | Which scenario failed |
-| `failureType` | `selector` / `assertion` / `navigation` / `timeout` |
-| `failedStep` | The exact step that failed |
-| `suggestedFix` | What to change |
-| `confidence` | `high` / `medium` / `low` |
-
-High-confidence fixes (e.g. element moved but still exists with different ARIA label) are applied automatically. Low-confidence cases are shown in chat for your review before applying.
-
-## What `regenerate_failed_test` does
-
-For `selector` failures:
-1. Opens a headed or headless browser
-2. Navigates to the page where the failure occurred
-3. Captures a fresh DOM snapshot
-4. Asks the LLM to regenerate the failing steps using the new snapshot
-5. Returns an updated `E2ESpecFile`
-
-For `assertion` failures:
-- Inspects current page state vs. expected state
-- Updates `value` or `assertionType` to match the app's current behavior
-
-For `navigation` / `timeout` failures:
-- Checks if the URL changed (redirects, route renames)
-- Updates `navigate` steps accordingly
+Reggie confirms the change with you and applies it through `regenerate_failed_test`.
 
 ## Reviewing a fix before applying
 
-If the agent proposes a fix and asks for confirmation:
+Every test change goes through a confirmation:
 
 ```
 Agent: "I found that [aria-label='Email address'] is now [aria-label='Work email'].
        Updated scenario-002 step 2. Apply this fix?"
 
-You: "yes"   ← applies the fix
-You: "no, the label is 'Company email'"   ← agent uses your correction
+You: "yes"   ← applies the fix and re-runs
+You: "no, the label is 'Company email'"   ← Reggie uses your correction
 ```
 
 ## Bulk healing after a deployment
@@ -102,18 +81,17 @@ After a large UI change, run the full suite and then:
 "Heal all failing tests"
 ```
 
-The agent batches `analyze_test_runs` across all failures, then calls `regenerate_failed_test` + `apply_scenario_fix` for each one. Progress is shown in the chat thread.
+Reggie walks the failures one by one, showing each classification. Test defects are healed with your approval; app defects are offered as defects to file; a stale spec is pointed out once.
 
 ## When autoheal cannot fix a test
 
-Some failures require human judgment:
-
 | Situation | What to do |
 |-----------|-----------|
-| Feature was removed from the app | Delete the scenario: `"Delete scenario-011"` |
-| Business logic changed | Update `autoreg.md` and regenerate: `"Regenerate scenario-005"` |
-| Multi-step flow redesigned | Describe the new flow in chat; the agent regenerates from scratch |
-| Flaky test (timing issue) | Add a `wait` step or increase timeout: `"Add a 2s wait before step 4 in scenario-008"` |
+| The app is wrong, not the test | File the defect — [Fixing Defects](/guide/fixing-defects) |
+| Your app changed and the spec is stale | Re-run `generate-autoreg`; it updates only what changed, then "apply the spec delta" |
+| Feature was removed from the app | Re-run `generate-autoreg`; the delta deprecates its scenarios |
+| Multi-step flow redesigned | Re-run `generate-autoreg`; the delta hands the restructured scenarios back for regeneration |
+| Flaky test (timing issue) | Add a `wait` step or increase a timeout: `"Add a 2s wait before step 4 in scenario-008"` |
 
 ## Regenerating a scenario from scratch
 
@@ -121,11 +99,11 @@ Some failures require human judgment:
 "Regenerate scenario-006 from scratch using the current app"
 ```
 
-This triggers `generate_scenario_from_page`, which re-navigates the live page and generates a fresh test — discarding the old steps entirely.
+This uses `generate_scenario_from_page`, which re-navigates the live page and generates a fresh test — discarding the old steps entirely.
 
 ## Tips
 
-- **Run autoheal after every deploy** — paste the run output in chat or just type "heal failing tests" after each run.
-- **Keep `autoreg.md` up to date** — if features change, update your spec so regenerated tests reflect the new behavior.
-- **Check `confidence: low` suggestions** — the agent flags uncertain fixes; review these before applying.
+- **Run the suite after every deploy** — then "heal failing tests"; real bugs surface as defects, not as silently weakened tests.
+- **Keep `autoreg.md` up to date** — re-run `generate-autoreg` after changing your app; delta mode makes it cheap.
+- **Check `medium` and `low` confidence** — Reggie flags uncertain calls; read the reasons before approving.
 - **Videos help diagnosis** — enable video recording in settings so you can see exactly what happened before the failure.

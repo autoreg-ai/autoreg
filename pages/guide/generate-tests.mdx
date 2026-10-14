@@ -8,6 +8,8 @@ description: Create a workflow and run the AI agent to generate your E2E test su
 AutoReg uses a three-step agent workflow to generate tests. Each step calls an agent tool that opens a headless browser, captures a live DOM snapshot, and writes files to disk.
 
 > **Before you start:** you need an `autoreg.md` spec. [Generate it with the AutoReg skill](/guide/generate-spec) — see [what the spec contains](/guide/autoreg-md).
+>
+> This page describes the browser (UI) flow. An **API spec** goes through the same steps with the API tools (`init_api_test_generation` → `generate_next_api_test` → `generate_api_plan`) and no browser — see [API Testing](/guide/api-testing).
 
 ## Step 1 — Create a new workflow
 
@@ -16,7 +18,7 @@ AutoReg uses a three-step agent workflow to generate tests. Each step calls an a
    - **Name** — human-readable workflow name
    - **URL** — base URL of the application under test
    - **Spec** — paste your `autoreg.md` content (saved to disk automatically)
-3. Click **Select Folder** and choose where to save the workflow
+3. Click **Select Folder** and choose where to save the workflow (it is independent of your app's code)
 4. Click **Create**
 
 The workflow folder is scaffolded immediately and Reggie starts in the right sidebar.

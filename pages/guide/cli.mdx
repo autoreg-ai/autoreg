@@ -1,0 +1,156 @@
+---
+title: Run AutoReg from the CLI and CI
+description: Run generated AutoReg tests locally or in a GitHub Actions pipeline without the desktop app.
+---
+
+# Run AutoReg from the CLI and CI
+
+The `@autoreg/cli` package runs **tests that already exist** in an AutoReg workflow. Use it from a local terminal or a CI runner; the desktop app does not need to be open. `autoreg run` does not generate `autoreg.md`, create tests on its first run, or apply a spec delta. Generate or update the workflow first using the [spec](/guide/generate-spec) and [test generation](/guide/generate-tests) guides.
+
+**Running existing tests needs no `OPENAI_API_KEY`, `AUTOREG_TOKEN`, or `AUTOREG_CLOUD_URL`.** If your scenarios need application login details or other `{{parameters}}`, supply those as test parameters in the workflow's `environments.json`.
+
+## 1. Prepare the app and workflow
+
+Your application source and AutoReg workflow can be in different folders:
+
+```text
+my-app/                    # application source; start the app here
+my-autoreg-workflow/       # pass this folder to `autoreg run`
+  autoreg.md
+  my-autoreg-workflow.ar   # workflow manifest
+  tests/
+    scenario-001.json
+  plans/
+    e2e-plan.json          # needed only when using --plan
+  environments.json        # local test parameters; do not commit secrets
+```
+
+The CLI argument is the **workflow folder**, not the application source root. Check that its `.ar` manifest and generated `tests/` files are present, then start the app or make sure its configured URL is reachable. If you use a plan, make its `plans/` file available too. The spec baseline supports delta generation; it is not a substitute for the generated test files.
+
+On first use, AutoReg can create `environments.json` from `autoreg.md`. Pending parameter values remain empty. Set the application's test credentials and the correct base URL before running scenarios that need them. Keep this file out of version control because it can contain secrets.
+
+## 2. Install and run locally
+
+Use Node.js 20 or newer. In the app repository, install the CLI as a development dependency so the same version is used locally and in CI:
+
+```bash
+npm install --save-dev @autoreg/cli
+```
+
+Commit the updated `package.json` and lockfile. For browser tests, install Chromium once on your machine:
+
+```bash
+npm exec -- autoreg install-browsers
+```
+
+API-only workflows run over HTTP and do not need a browser binary. Start your application using its normal development or test command, then run the workflow from the app repository:
+
+```bash
+npm exec -- autoreg run ../my-autoreg-workflow --scenario scenario-001
+npm exec -- autoreg run ../my-autoreg-workflow --all
+```
+
+Use a Windows path such as `C:\work\my-autoreg-workflow` if that is where your workflow lives. You can also use `npx @autoreg/cli run <workflow> --all` for a one-off run, or install the `autoreg` command from the desktop app's **Settings → Command line**. With an installed `autoreg` command on your PATH, you can run `autoreg` directly.
+
+| Command | What it runs |
+| --- | --- |
+| `autoreg run <workflow> --scenario scenario-001` | One stored scenario |
+| `autoreg run <workflow> --all` | All stored scenarios |
+| `autoreg run <workflow> --plan e2e-plan.json` | Scenarios in that plan |
+| `autoreg run <workflow> --all --env staging` | All scenarios using the named environment |
+| `autoreg run <workflow> --all --json` | JSON results for a script or CI job |
+
+The command exits with **0** when all selected scenarios pass, **1** when a scenario fails, and **2** for a usage error. Run artifacts are written under `<workflow>/runs/`.
+
+## 3. Make the workflow available in CI
+
+A CI runner starts with a fresh filesystem. A workflow stored only in another local folder, such as `C:\work\my-autoreg-workflow`, will not be present there. Choose one of these layouts:
+
+1. Commit the workflow's non-secret files under the app repository, for example `qa/autoreg/`. Include the `.ar` manifest, `autoreg.md`, `tests/`, and `plans/` if used.
+2. Keep the workflow in a separate repository and check it out into the CI job before running tests. The CLI path must point to the checked-out workflow folder.
+
+Do not commit `environments.json` or `runs/`. If scenarios use pending parameters, save the **complete** local `environments.json` contents as a CI secret after setting its base URL for the CI app. In the example below the GitHub Actions secret is named `AUTOREG_ENV_JSON`. This secret contains your **application's test parameters**, not an OpenAI or AutoReg cloud key. If your workflow has no pending parameters and its configured URL works in CI, you can omit the secret-writing step.
+
+## 4. Add a GitHub Actions pipeline
+
+This example assumes the app's `npm run start` serves `http://127.0.0.1:3000/`, its dependencies are installed with `npm ci`, and the generated workflow is committed at `qa/autoreg/`. Adjust those three details for your app. Add a build step before starting the app if its `start` script needs one. Save the file as `.github/workflows/autoreg.yml` in the app repository:
+
+```yaml
+name: AutoReg tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  autoreg:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install app and AutoReg CLI
+        run: npm ci
+
+      - name: Install Chromium and Linux dependencies
+        run: npm exec -- playwright install --with-deps chromium
+
+      - name: Start application and wait for it
+        run: |
+          npm run start > app.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat app.log
+          exit 1
+
+      - name: Set AutoReg test parameters
+        env:
+          AUTOREG_ENV_JSON: ${{ secrets.AUTOREG_ENV_JSON }}
+        run: |
+          if [ -n "$AUTOREG_ENV_JSON" ]; then
+            printf '%s' "$AUTOREG_ENV_JSON" > qa/autoreg/environments.json
+          fi
+
+      - name: Run generated scenarios
+        run: npm exec -- autoreg run qa/autoreg --all --json > autoreg-results.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: autoreg-results
+          path: |
+            autoreg-results.json
+            qa/autoreg/runs/
+            app.log
+          if-no-files-found: ignore
+```
+
+The first pipeline run executes the **committed scenarios**; it does not generate them. A failed scenario makes the run step fail, and the artifact step still uploads any results and logs. For an API-only workflow, remove the Chromium installation step. If the app is already hosted, remove the start step and set the workflow environment's base URL to that reachable host. See [Playwright's CI setup](https://playwright.dev/docs/ci) for browser dependencies on other runners.
+
+If the workflow lives in a separate repository, add another checkout step before the run. For a private repository, give the job a read-only token as `WORKFLOW_REPO_TOKEN`:
+
+```yaml
+- uses: actions/checkout@v7
+  with:
+    repository: your-org/your-autoreg-workflow
+    token: ${{ secrets.WORKFLOW_REPO_TOKEN }}
+    path: qa/autoreg
+```
+
+This checkout example assumes the workflow manifest is at the root of that repository. Change the `autoreg run` path if it is in a subfolder. Also ensure your app's CI `.gitignore` excludes `qa/autoreg/environments.json` and `qa/autoreg/runs/` when the workflow is checked out inside the app repository.
+
+## After the run
+
+Review `autoreg-results.json` and the uploaded `runs/` artifacts for failures. To inspect a failed scenario locally, run `autoreg triage <workflow> --scenario scenario-001`. Filing application defects from CI is optional: add `--file-defects=high` to `autoreg run` only when you want that behavior. See [Fixing Defects with Your Coding Agent](/guide/fixing-defects) for the defect and verification flow.
+
+For ordinary test execution, configure only the app URL and test parameters. `AUTOREG_TOKEN`, `AUTOREG_CLOUD_URL`, and `OPENAI_API_KEY` are optional credentials for cloud or AI-backed features; they do not supply test login values.

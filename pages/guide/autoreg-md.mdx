@@ -11,6 +11,8 @@ Think of it as a test spec written for a very capable QA engineer who has never 
 
 `autoreg.md` is always generated, never written by hand. It's produced by the **`generate-autoreg`** skill — see [Generating autoreg.md](/guide/generate-spec) — which installs in seconds into any repository, application, or project and writes the file for you.
 
+There are two kinds of spec, and the skill picks the right one for your project: a **UI spec** (`**Spec type:** ui`) for browser end-to-end tests, and an **API spec** (`**Spec type:** api`) for HTTP API tests that run without a browser. A workflow holds one spec of one kind; AutoReg recognises which on import. See [API Testing](/guide/api-testing).
+
 ## How AutoReg uses it
 
 1. When you create a workflow (or run generation), the agent reads `autoreg.md` from your workflow folder.
@@ -35,13 +37,15 @@ You can also paste the spec into the **New Workflow** dialog — it is saved to 
 
 ## What a spec contains
 
-A generated `autoreg.md` typically covers:
+A generated **UI** `autoreg.md` typically covers:
 
 - **App overview** — what the app does and its base URL
 - **Test credentials** — one set per role the app supports
 - **Features** — the feature areas and behaviours to cover
 - **Edge cases** — validation errors, permission checks, and limits worth testing
 - **UI notes** — anything unusual the generator should know about, like custom components or multi-step flows
+
+A generated **API** `autoreg.md` covers the endpoint table, request and response models, error contracts, the token flow, endpoint behaviours (pagination, ordering, idempotency), a test data catalog where every value is a `{{token}}`, and 8–30 self-contained HTTP scenarios.
 
 ## Keeping a spec current
 
