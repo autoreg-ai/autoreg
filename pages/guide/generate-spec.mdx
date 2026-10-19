@@ -23,7 +23,7 @@ Install the **AutoReg: Skill Installer** extension (`autoreg.autoreg-skill-insta
   ```
   /generate-autoreg
   ```
-  The skill asks for the AutoReg workflow folder and confirms whether your current folder is the app source before it generates anything.
+  The skill uses the current app source folder and creates its workflow under `.autoreg/ui/` or `.autoreg/api/` there.
 - **No agent detected** — a `generate-autoreg/` folder is created in your workspace with the skill inside it. Reference it directly in your agent's chat:
   ```
   @generate-autoreg/generate-autoreg.md
@@ -34,15 +34,15 @@ Install the **AutoReg: Skill Installer** extension (`autoreg.autoreg-skill-insta
 In Claude Code, for example:
 
 ```
-/generate-autoreg /path/to/autoreg-workflow /path/to/app/src
+/generate-autoreg
 ```
 
-- **First argument** — your AutoReg workflow folder (where `autoreg.md` will be written).
-- **Second argument** — the root of the application to analyze. Add more roots for a multi-repository app.
+The current workspace is the app source. The skill writes the uploadable spec and workflow files together under `.autoreg/ui/` or `.autoreg/api/`, reusing those folders when they exist.
+For a project with both UI and API, the skill creates `.autoreg/ui/autoreg.md` and `.autoreg/api/autoreg.md` in the same app source tree.
 
-If you omit the paths, the skill asks you to identify the workflow folder and confirm the current directory as the app source. If you give only the workflow folder, it asks you to confirm the app source path, suggesting the path saved in that workflow's baseline when available. It never assumes that the app and workflow share a folder. In non-interactive use, pass both paths explicitly.
+Use `--ui`, `--api` or `--both` to force a type. If the workspace contains several independent apps, the skill asks which app source folder to analyze.
 
-The skill first prints what it detected, for example `Project type: UI (evidence: react-dom in package.json; vite.config.ts)`, then continues with the right generator. A project with both a UI and an API produces two specs in two workflow folders (`<folder>` and `<folder>-api`) with one question in between. Force a type with `--ui`, `--api` or `--both`. Libraries and CLIs are reported as not supported.
+The skill detects UI and API features from the app source. Libraries and command-line tools are reported as unsupported.
 
 ## Step 3 — Answer the interview
 
@@ -74,7 +74,7 @@ AutoReg automatically verifies every spec the skill produces when you import it,
 
 ## Step 5 — Import into AutoReg
 
-Create a new AutoReg workflow (or open an existing one) pointing at the folder containing the generated `autoreg.md`. The workflow folder is independent of your app's code — keep it wherever suits you. Everything AutoReg and your coding agent exchange lives in `<workflow>/.autoreg/` (the spec baseline, deltas, defects, fix reports). If you version the folder, the `.gitignore` AutoReg writes keeps `runs/`, `environments.json` (secrets in plain text) and the MCP session file out. On import, AutoReg:
+Create a new AutoReg workflow, enter a workflow name and select the generated source `autoreg.md`. AutoReg creates the `.ar` manifest, plans, tests, runs, baselines, deltas, defects, and fix reports under `<app source>/.autoreg/<ui-or-api>/`. Its generated `.gitignore` excludes runs, test parameter values, and the MCP session file from version control. On import, AutoReg:
 
 1. **Verifies the spec** — confirms it came from the skill and hasn't been changed since.
 2. **Resolves any pending secret values** — you're prompted for them, and they're stored securely rather than written into the spec.

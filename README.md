@@ -36,7 +36,7 @@ That's it — no accounts or extra setup are required to start using the app.
 ## Getting started
 
 1. **Generate your spec.** Install the **AutoReg: Skill Installer** extension in your editor and run it against your app — it produces `autoreg.md`, the spec that describes your app to AutoReg. See [Generating your spec](#generating-your-spec) below.
-2. **Create a new workflow** in AutoReg (`Ctrl+N`) — give it a name, your app's URL, and paste in your `autoreg.md` spec, then choose a folder to save it to.
+2. **Create a new workflow** in AutoReg (`Ctrl+N`) — enter a name and your app URL, then select `.autoreg/ui/autoreg.md` or `.autoreg/api/autoreg.md`. AutoReg reuses that folder and saves the `.ar` manifest there under the workflow name.
 3. **Watch tests generate** — AutoReg opens your app, works through your spec, and writes out a set of test scenarios and a test plan in real time.
 4. **Run your tests** — click the run icon next to any test, or run the whole plan at once.
 5. **Autoheal failures** — if a test fails, ask AutoReg to fix it and it will diagnose the failure and regenerate the broken scenario.
@@ -64,7 +64,7 @@ That's it — no accounts or extra setup are required to start using the app.
 
 The skill installs into any repository, application, or project in a couple of clicks — no configuration required. It also asks you up front for anything it can't figure out on its own, like test credentials and sample form data.
 
-Once generated, `autoreg.md` is ready to use — paste it into a new AutoReg workflow to start generating tests. Every generated spec is automatically checked when you import it, so AutoReg can confirm it's the one the skill produced and that it hasn't been altered since. If your app changes, re-run the skill to refresh the spec rather than editing the file directly.
+Once generated, select `autoreg.md` in **New Workflow** to start generating tests. The `.ar` manifest, plans, tests, runs, and defect files are stored under your app source's `.autoreg/` folder. Re-run the skill when your app changes rather than editing the spec by hand.
 
 ## Talking to AutoReg
 

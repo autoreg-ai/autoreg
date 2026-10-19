@@ -23,17 +23,17 @@ There are two kinds of spec, and the skill picks the right one for your project:
 
 ## Where it lives
 
-Place `autoreg.md` in your **workflow folder** — the same folder you select when creating a new AutoReg workflow. The agent reads it automatically when generation starts.
+Generate the spec in `<app source>/.autoreg/ui/autoreg.md` or `<app source>/.autoreg/api/autoreg.md`, then select that file in **New Workflow**. AutoReg uses the same folder for the manifest and generated files.
 
 ```
-myworkflow/
+<app source>/.autoreg/ui/
 ├── autoreg.md          ← your spec
 ├── myworkflow.ar       ← manifest (auto-created)
 ├── tests/              ← generated test files
 └── plans/              ← generated plan
 ```
 
-You can also paste the spec into the **New Workflow** dialog — it is saved to disk as `autoreg.md` automatically.
+The New Workflow dialog reuses the selected `.autoreg/ui` or `.autoreg/api` folder. It does not create another `.autoreg` inside it.
 
 ## What a spec contains
 

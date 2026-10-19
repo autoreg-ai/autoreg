@@ -68,7 +68,7 @@ description: Cheat sheet for common AutoReg commands and chat prompts.
 ## Workflow folder layout
 
 ```
-myworkflow/
+<app source>/.autoreg/ui/
 ├── autoreg.md           ← your spec (required for generation)
 ├── myworkflow.ar         ← manifest (auto-managed)
 ├── tests/
@@ -80,13 +80,12 @@ myworkflow/
 │       ├── execution.log
 │       ├── diagnostics.json   ← console/network errors the app produced
 │       └── artifacts/
-└── .autoreg/
-    ├── baseline.json       ← spec baseline (delta mode)
-    ├── defects/            ← defects AutoReg filed for your coding agent
-    └── fixes/              ← your coding agent's fix reports
+├── baseline.json           ← spec baseline (delta mode)
+├── defects/                ← defects AutoReg filed for your coding agent
+└── fixes/                  ← your coding agent's fix reports
 ```
 
-The workflow folder is independent of your app's code. When AutoReg files a defect, copy its path from Reggie's reply and paste it into your coding agent.
+The workflow lives under your app source at `.autoreg/ui/` or `.autoreg/api/`. Your coding agent can find defects there directly; Reggie also shows each defect path.
 
 ## Generating `autoreg.md` from source code
 
@@ -107,7 +106,7 @@ For setup, test parameters, and a complete pipeline example, see [Run AutoReg fr
 ## Fixing a defect AutoReg filed (in your coding agent)
 
 ```
-/fix-autoreg-defect "C:/…/my-workflow/.autoreg/defects/DEF-0003.json"
+/fix-autoreg-defect "C:/…/my-app/.autoreg/ui/defects/DEF-0003.json"
 ```
 
 Run it without arguments and it asks for the path Reggie showed you.

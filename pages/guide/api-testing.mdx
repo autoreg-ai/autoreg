@@ -29,7 +29,7 @@ It then runs the `generate-api-autoreg` generator, which asks you up front for:
 - seed data — known record ids, list sizes, search terms with known counts
 - sample payloads for domain-specific request bodies
 
-A project that has **both** a UI and an API gets two specs in two workflow folders (`<folder>` for the UI, `<folder>-api` for the API), with one question between them. Force a type with `--ui`, `--api` or `--both`. Libraries and command-line tools are not supported — the skill says so and stops.
+A project that has **both** a UI and an API gets separate `.autoreg/ui/autoreg.md` and `.autoreg/api/autoreg.md` source specs, with workflow files beside each spec. Force a type with `--ui`, `--api` or `--both`. Libraries and command-line tools are not supported.
 
 ## 2. What the API spec contains
 

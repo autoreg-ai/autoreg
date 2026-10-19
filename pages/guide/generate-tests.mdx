@@ -17,11 +17,11 @@ AutoReg uses a three-step agent workflow to generate tests. Each step calls an a
 2. Fill in the dialog:
    - **Name** — human-readable workflow name
    - **URL** — base URL of the application under test
-   - **Spec** — paste your `autoreg.md` content (saved to disk automatically)
-3. Click **Select Folder** and choose where to save the workflow (it is independent of your app's code)
+   - **Spec** — select the generated `autoreg.md` in your app source
+3. AutoReg stores the workflow under the selected spec's source folder at `.autoreg/ui/` or `.autoreg/api/`
 4. Click **Create**
 
-The workflow folder is scaffolded immediately and Reggie starts in the right sidebar.
+The workflow folder and its `.ar` manifest are created under the app source immediately, and Reggie starts in the right sidebar.
 
 ## Step 2 — The agent runs automatically
 
@@ -83,7 +83,7 @@ The plan groups scenarios into sections. Click `e2e-plan.json` in the **Plans** 
 ## Workflow folder structure after generation
 
 ```
-myworkflow/
+<app source>/.autoreg/ui/
 ├── autoreg.md                 ← your spec
 ├── myworkflow.ar               ← manifest (JSON)
 ├── tests/
@@ -99,7 +99,7 @@ myworkflow/
 You can also type commands directly in the chat panel:
 
 ```
-"Generate tests for my workflow at /Users/me/myworkflow"
+"Generate tests for my workflow at /Users/me/myapp/.autoreg/ui"
 "What scenarios were generated?"
 "Add a test for password reset"
 "Regenerate scenario-003"

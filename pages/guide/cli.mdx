@@ -64,10 +64,11 @@ The command exits with **0** when all selected scenarios pass, **1** when a scen
 
 ## 3. Make the workflow available in CI
 
-A CI runner starts with a fresh filesystem. A workflow stored only in another local folder, such as `C:\work\my-autoreg-workflow`, will not be present there. Choose one of these layouts:
+A CI runner starts with a fresh filesystem. The workflow is under the app repository at `.autoreg/ui/` or `.autoreg/api/`. Check out the app repository and make the workflow's non-secret files available in CI. The CLI path points to that workflow folder.
 
-1. Commit the workflow's non-secret files under the app repository, for example `qa/autoreg/`. Include the `.ar` manifest, `autoreg.md`, `tests/`, and `plans/` if used.
-2. Keep the workflow in a separate repository and check it out into the CI job before running tests. The CLI path must point to the checked-out workflow folder.
+Commit the `.ar` manifest, `autoreg.md`, `tests/`, and `plans/` if you want CI to run them. AutoReg's workflow `.gitignore` excludes local runs, parameter values, and the MCP session file.
+
+If you intentionally keep workflow files in a separate repository, copy them to the same relative path under the app source in CI before running tests.
 
 Do not commit `environments.json` or `runs/`. If scenarios use pending parameters, save the **complete** local `environments.json` contents as a CI secret after setting its base URL for the CI app. In the example below the GitHub Actions secret is named `AUTOREG_ENV_JSON`. This secret contains your **application's test parameters**, not an OpenAI or AutoReg cloud key. If your workflow has no pending parameters and its configured URL works in CI, you can omit the secret-writing step.
 

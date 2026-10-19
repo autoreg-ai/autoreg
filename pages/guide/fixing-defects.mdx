@@ -63,20 +63,20 @@ The record carries what a developer needs to start immediately:
 - **Evidence** — the screenshot, the live page snapshot, what the app logged, when the scenario last passed
 - **Reproduction steps** — with test parameters as `{{tokens}}`; secrets never leave your environment file
 
-Your workflow folder is independent of your app's code, so your coding agent cannot find the defect on its own — you hand it the path. Reggie's reply shows a card with the defect's path and the ready-made command, each with a **copy button**:
+Your workflow lives under the app source's `.autoreg` folder, so your coding agent can find the defect directly. Reggie's reply also shows a card with the defect path and ready-made command, each with a **copy button**:
 
 ```
-Defect   C:/Users/me/workflows/shop/.autoreg/defects/DEF-0003.json   [copy]
-Command  /fix-autoreg-defect "C:/Users/me/workflows/shop/.autoreg/defects/DEF-0003.json"   [copy]
+Defect   C:/work/shop/.autoreg/ui/defects/DEF-0003.json   [copy]
+Command  /fix-autoreg-defect "C:/work/shop/.autoreg/ui/defects/DEF-0003.json"   [copy]
 ```
 
-Paste the command into your coding agent, or run the skill without arguments and paste the path when it asks. In VS Code, the **AutoReg: Fix a Defect…** command does the same: paste the path, pick the agent, and it opens a terminal with the agent started on the defect.
+Paste the command into your coding agent, or run `/fix-autoreg-defect` without arguments to choose an open defect from this app source. In VS Code, **AutoReg: Fix a Defect…** finds the same defects and can launch your agent.
 
 ## What your coding agent does
 
 The `fix-autoreg-defect` skill (installed next to `generate-autoreg`) walks the agent through it:
 
-1. **Asks for the defect path** if you did not pass it, then **claims** the defect by writing `fixes/DEF-0003.fix.json` with `status: "in-progress"`
+1. **Finds an open defect** in the app source's `.autoreg` workflow, then **claims** it by writing `fixes/DEF-0003.fix.json` with `status: "in-progress"`
 2. **Reads** the record and the evidence, starting from the feature's source files
 3. **Traces** the failing step to the code — a `file:line` in a page error is usually the shortest path
 4. **Decides**: a real defect, `not-a-bug` (the spec cites something that was never true in source), `cannot-reproduce`, or `needs-info` with concrete questions
@@ -122,11 +122,11 @@ Three failed verifications park the defect for a human. If the agent disputes th
 
 ## Working with remote agents
 
-Devin, Codex cloud tasks and the Copilot coding agent only see the repository, and your workflow folder is not in it. The defect record is self-contained, so paste the contents of `DEF-0003.json` (plus `live-snapshot.txt` and `diagnostics.json` if useful) into the agent's session. When it is done, save its fix report as `<workflow>/.autoreg/fixes/DEF-0003.fix.json` and AutoReg offers verification as usual.
+Cloud coding agents can see the workflow when the app repository includes its `.autoreg` folder. Share the defect record or its path with the agent as needed; its fix report belongs at `<workflow>/fixes/DEF-0003.fix.json`.
 
 ## Live connection over MCP
 
-While a workflow is open, the AutoReg app serves the same defect tools over MCP on localhost. In VS Code, click **MCP** next to your agent in the AutoReg panel (or run *AutoReg: Connect a Coding Agent over MCP*): the extension puts a small shim in `<workflow>/.autoreg/mcp/` and adds an `autoreg` server to the agent's project config (`.mcp.json` for Claude Code, `.cursor/mcp.json`, `.vscode/mcp.json`, and others). Your agent can then:
+While a workflow is open, the AutoReg app serves the same defect tools over MCP on localhost. In VS Code, click **MCP** next to your agent in the AutoReg panel (or run *AutoReg: Connect a Coding Agent over MCP*): the extension puts a small shim in `<workflow>/mcp/` and adds an `autoreg` server to the agent's project config (`.mcp.json` for Claude Code, `.cursor/mcp.json`, `.vscode/mcp.json`, and others). Your agent can then:
 
 | Tool | What it does |
 |------|--------------|
@@ -156,7 +156,7 @@ The CLI never applies a spec delta — that stays in the app with its preview an
 
 ## Agent-to-Agent (A2A)
 
-Every defect is also an [A2A](https://a2a-protocol.org) task. While a workflow is open the app serves an Agent Card at `http://127.0.0.1:<port>/.well-known/agent-card.json` and the JSON-RPC 1.0 endpoint at `/a2a` (same port and token as MCP, from `<workflow>/.autoreg/session.json`); `autoreg a2a <workflow>` serves the same without the app. An A2A client can `ListTasks`, `GetTask` (the record, evidence and fix report come back as artifacts), and `SendMessage` to a task — a text part claims it, a data part submits the fix report. `CancelTask` is refused: only you close a defect, in AutoReg.
+Every defect is also an [A2A](https://a2a-protocol.org) task. While a workflow is open the app serves an Agent Card at `http://127.0.0.1:<port>/.well-known/agent-card.json` and the JSON-RPC 1.0 endpoint at `/a2a` (same port and token as MCP, from `<workflow>/session.json`); `autoreg a2a <workflow>` serves the same without the app. An A2A client can `ListTasks`, `GetTask` (the record, evidence and fix report come back as artifacts), and `SendMessage` to a task — a text part claims it, a data part submits the fix report. `CancelTask` is refused: only you close a defect, in AutoReg.
 
 ## The Defects panel
 
