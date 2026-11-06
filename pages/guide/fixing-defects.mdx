@@ -17,7 +17,7 @@ After every failed run, Reggie triages before proposing anything. The signals ar
 | The scenario **passed before** with the same test body | the app (a regression) |
 | **Console errors, page errors, failed requests or 5xx responses** captured during the run | the app |
 | The element exists on the live page **under a different name** | the test |
-| Your **source changed** after `autoreg.md` was generated | the spec is stale — re-run `generate-autoreg` first |
+| Your **source changed** after `autoreg.md` was generated | the spec is stale — re-run `generate-autoreg`, or file a defect anyway |
 | The app was **unreachable** | the environment |
 | A timeout-shaped failure that **passes on one retry** | flaky — nothing to fix |
 
@@ -27,6 +27,15 @@ The result is a classification with a confidence and its reasons. For a **test d
 "This looks like a bug in the app, not the test."
   [File a defect for my coding agent]  [It's the test — fix the test]  [Ignore for now]
 ```
+
+For **spec drift** — the app's source changed after `autoreg.md` was generated — Reggie names the changed files and still lets you file. Testers don't have to wait for a developer to regenerate the spec:
+
+```
+"The app changed after the spec was generated."
+  [File a defect for my coding agent anyway]  [I'll re-run generate-autoreg first]  [Ignore for now]
+```
+
+A drift defect keeps the `spec-drift` classification and a note listing the changed files. Your coding agent checks those files first and decides between two outcomes. If the change was a **regression**, it fixes the app. If the change was **intended**, it regenerates the spec and reports `not-a-bug`.
 
 ## Tests you add in chat
 
@@ -44,7 +53,7 @@ That link is what a later defect on the test hands to your coding agent: the fea
 With your approval, Reggie writes a self-contained record into your workflow folder:
 
 ```
-myworkflow/.autoreg/
+my-app/.autoreg/ui/            ← the workflow folder (.autoreg/api/ for API workflows)
 ├── defects/
 │   ├── DEF-0003.json          ← the defect (see below)
 │   ├── DEF-0003/
@@ -118,6 +127,8 @@ Reggie shows what the agent claims and asks once. Then it:
 2. re-runs the defect's scenario **and the scenarios of features that depend on it** (login broken → dashboard re-checked);
 3. marks the defect **resolved** when everything passes, or **reopens** it with the failing step for the agent to look at again.
 
+A regenerated spec gets its own notice. When `generate-autoreg` writes a new `delta.json` that hasn't been applied yet, AutoReg shows *"Your spec changed (v4 → v5). Update the affected tests?"* the next time you switch to its window. **Review changes** starts the spec-delta preview in chat. If `autoreg.md` changed after the delta was written, the notice asks you to re-run `generate-autoreg` instead.
+
 Three failed verifications park the defect for a human. If the agent disputes the defect (`not-a-bug`), you decide: close it, reopen it with a note, or fix the test instead.
 
 ## Working with remote agents
@@ -147,10 +158,13 @@ autoreg run <workflow> --all --json               # run everything; exit 1 on an
 autoreg run <workflow> --all --file-defects=high  # CI opt-in: file high-confidence app defects
 autoreg triage <workflow> --scenario 002          # the deterministic classification of the last failed run
 autoreg defects list --open                       # what is waiting, and what your agent reported
+autoreg defects show 3                            # one defect in full (DEF-0003; DEF-003 and 3 work too)
 autoreg verify --yes                              # re-run the reported fixes and resolve or reopen
 autoreg mcp <workflow>                            # serve the MCP tools over stdio without the app
 autoreg a2a <workflow>                            # serve the A2A task endpoint + agent card over HTTP
 ```
+
+`defects` and `verify` work on the current folder, or on `--project <workflow>`. If you run them from the app repository, they use its `.autoreg/ui` or `.autoreg/api` workflow. When both exist, they ask you to choose one with `--project`.
 
 The CLI never applies a spec delta — that stays in the app with its preview and approval. Unattended filing is bounded: only app defects with high confidence, one per feature per run, at most `--max-defects` (default 3), and nothing at all when most of the run failed.
 

@@ -25,7 +25,7 @@ my-autoreg-workflow/       # pass this folder to `autoreg run`
   environments.json        # local test parameters; do not commit secrets
 ```
 
-The CLI argument is the **workflow folder**, not the application source root. Check that its `.ar` manifest and generated `tests/` files are present, then start the app or make sure its configured URL is reachable. If you use a plan, make its `plans/` file available too. The spec baseline supports delta generation; it is not a substitute for the generated test files.
+The CLI argument is the **workflow folder**, not the application source root. If you pass the app's source root instead, or run the command there with no path, the CLI uses its `.autoreg/ui` or `.autoreg/api` workflow and prints `Using workflow …`. If both exist, it asks you to choose one. Check that its `.ar` manifest and generated `tests/` files are present, then start the app or make sure its configured URL is reachable. If you use a plan, make its `plans/` file available too. The spec baseline supports delta generation; it is not a substitute for the generated test files.
 
 On first use, AutoReg can create `environments.json` from `autoreg.md`. Pending parameter values remain empty. Set the application's test credentials and the correct base URL before running scenarios that need them. Keep this file out of version control because it can contain secrets.
 
