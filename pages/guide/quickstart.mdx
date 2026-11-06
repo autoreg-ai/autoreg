@@ -42,6 +42,14 @@ description: Cheat sheet for common AutoReg commands and chat prompts.
 "Analyze the last run"
 ```
 
+### Defects (feedback loop with your coding agent)
+```
+"File a defect for my coding agent"   ← offered after an app-defect diagnosis
+"What bugs are open?"
+"Verify fixes"
+"Did my agent fix DEF-0003?"
+```
+
 ### Editing
 ```
 "Add a test scenario for password reset"
@@ -60,18 +68,24 @@ description: Cheat sheet for common AutoReg commands and chat prompts.
 ## Workflow folder layout
 
 ```
-myworkflow/
+<app source>/.autoreg/ui/
 ├── autoreg.md           ← your spec (required for generation)
 ├── myworkflow.ar         ← manifest (auto-managed)
 ├── tests/
 │   └── scenario-NNN.json
 ├── plans/
 │   └── e2e-plan.json
-└── runs/
-    └── 2026-06-23T14-32/
-        ├── execution.log
-        └── artifacts/
+├── runs/
+│   └── 2026-06-23T14-32/
+│       ├── execution.log
+│       ├── diagnostics.json   ← console/network errors the app produced
+│       └── artifacts/
+├── baseline.json           ← spec baseline (delta mode)
+├── defects/                ← defects AutoReg filed for your coding agent
+└── fixes/                  ← your coding agent's fix reports
 ```
+
+The workflow lives under your app source at `.autoreg/ui/` or `.autoreg/api/`. Your coding agent can find defects there directly; Reggie also shows each defect path.
 
 ## Generating `autoreg.md` from source code
 
@@ -80,6 +94,22 @@ In your AI coding agent (after installing the [skill](/guide/generate-spec)):
 ```
 /generate-autoreg /path/to/autoreg-workflow /path/to/app/src
 ```
+
+## Headless CLI
+
+```
+npx @autoreg/cli run ./workflow --all       # or: Settings → Command line → Install, then `autoreg …`
+```
+
+For setup, test parameters, and a complete pipeline example, see [Run AutoReg from the CLI and CI](/guide/cli).
+
+## Fixing a defect AutoReg filed (in your coding agent)
+
+```
+/fix-autoreg-defect "C:/…/my-app/.autoreg/ui/defects/DEF-0003.json"
+```
+
+Run it without arguments and it asks for the path Reggie showed you.
 
 ## JSON Step DSL — quick action reference
 
@@ -107,4 +137,6 @@ In your AI coding agent (after installing the [skill](/guide/generate-spec)):
 - [Generating autoreg.md](/guide/generate-spec)
 - [Generating Tests](/guide/generate-tests)
 - [Running & Managing Tests](/guide/manage-tests)
+- [CLI and CI Pipelines](/guide/cli)
 - [Autohealing](/guide/autoheal)
+- [Fixing Defects with Your Coding Agent](/guide/fixing-defects)

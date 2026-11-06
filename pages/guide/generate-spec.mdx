@@ -5,7 +5,7 @@ description: Generate autoreg.md from your app with the generate-autoreg AI skil
 
 # Generating `autoreg.md`
 
-`autoreg.md` is the spec that tells AutoReg about your application, and it's generated for you — not written by hand. The **`generate-autoreg`** AI skill reads your app and produces a complete `autoreg.md` with confirmed selectors and realistic test data, ready to import.
+`autoreg.md` is the spec that tells AutoReg about your application, and it's generated for you — not written by hand. The **`generate-autoreg`** AI skill works out whether your project is a **UI**, an **HTTP API**, or both, and runs the matching generator: `generate-ui-autoreg` produces a spec with confirmed selectors and realistic test data for browser tests; `generate-api-autoreg` produces a spec with every endpoint, request/response model and error contract for API tests (see [API Testing](/guide/api-testing)). Both are ready to import.
 
 Tests generated from a skill-written spec typically pass on the first run, because every selector in the spec was confirmed to exist in your app before the file was written.
 
@@ -23,6 +23,7 @@ Install the **AutoReg: Skill Installer** extension (`autoreg.autoreg-skill-insta
   ```
   /generate-autoreg
   ```
+  The skill uses the current app source folder and creates its workflow under `.autoreg/ui/` or `.autoreg/api/` there.
 - **No agent detected** — a `generate-autoreg/` folder is created in your workspace with the skill inside it. Reference it directly in your agent's chat:
   ```
   @generate-autoreg/generate-autoreg.md
@@ -33,11 +34,15 @@ Install the **AutoReg: Skill Installer** extension (`autoreg.autoreg-skill-insta
 In Claude Code, for example:
 
 ```
-/generate-autoreg /path/to/autoreg-workflow /path/to/app/src
+/generate-autoreg
 ```
 
-- **First argument** — your AutoReg workflow folder (where `autoreg.md` will be written). Optional if you run it from inside the workflow.
-- **Second argument** — the root of the application to analyze.
+The current workspace is the app source. The skill writes the uploadable spec and workflow files together under `.autoreg/ui/` or `.autoreg/api/`, reusing those folders when they exist.
+For a project with both UI and API, the skill creates `.autoreg/ui/autoreg.md` and `.autoreg/api/autoreg.md` in the same app source tree.
+
+Use `--ui`, `--api` or `--both` to force a type. If the workspace contains several independent apps, the skill asks which app source folder to analyze.
+
+The skill detects UI and API features from the app source. Libraries and command-line tools are reported as unsupported.
 
 ## Step 3 — Answer the interview
 
@@ -51,7 +56,7 @@ Secrets you provide are kept out of the spec's plain text and resolved securely 
 
 ## Step 4 — Review the generated spec
 
-The skill writes an `autoreg.md` containing:
+For a UI project the skill writes an `autoreg.md` containing:
 
 | Section | What's in it |
 |---------|-------------|
@@ -63,11 +68,13 @@ The skill writes an `autoreg.md` containing:
 | **Test Data Catalog** | The credentials, seed data, and sample values used across the suite. |
 | **8–25 test scenarios** | Positive and negative cases, ready to generate tests from. |
 
-AutoReg automatically verifies every spec the skill produces when you import it, so you can trust it's genuine and unaltered.
+For an API project the spec instead lists every endpoint, the request and response models, the error contracts and the token flow, with every request value as an editable test parameter — see [API Testing](/guide/api-testing).
+
+AutoReg automatically verifies every spec the skill produces when you import it, so you can trust it's genuine and unaltered. The New Workflow dialog shows whether it imported a **UI SPEC** or an **API SPEC**.
 
 ## Step 5 — Import into AutoReg
 
-Create a new AutoReg workflow (or open an existing one) pointing at the folder containing the generated `autoreg.md`. On import, AutoReg:
+Create a new AutoReg workflow, enter a workflow name and select the generated source `autoreg.md`. AutoReg creates the `.ar` manifest, plans, tests, runs, baselines, deltas, defects, and fix reports under `<app source>/.autoreg/<ui-or-api>/`. Its generated `.gitignore` excludes runs, test parameter values, and the MCP session file from version control. On import, AutoReg:
 
 1. **Verifies the spec** — confirms it came from the skill and hasn't been changed since.
 2. **Resolves any pending secret values** — you're prompted for them, and they're stored securely rather than written into the spec.
