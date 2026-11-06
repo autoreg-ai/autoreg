@@ -24,7 +24,7 @@ The result is a classification:
 |----------------|---------|--------------------|
 | `test-defect` | the element exists under a different selector/label, or the test asserts something the spec never stated | a page-grounded fix to the test, applied only after you approve |
 | `app-defect` | the spec states the expectation and the live app violates it | file a defect for your coding agent — never a test edit |
-| `spec-drift` | your source changed after the spec was generated | re-run `generate-autoreg` (delta mode), then run again |
+| `spec-drift` | your source changed after the spec was generated | re-run `generate-autoreg` (delta mode), then run again — or file a defect anyway; it records the drift for the developer |
 | `environment` | the app was unreachable | check the app is running; rerun |
 | `flaky` | a timeout-shaped failure passed on one automatic retry | nothing to fix |
 
