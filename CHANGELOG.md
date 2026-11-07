@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.0.0 - 2026-11-06
+
+- Merge pull request #10 from autoreg-ai/deltas (f2092ad)
+- fix: honour PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD in postinstall (c4696e9)
+- fix: enhance defect command options with project context and default behavior (7d8bf07)
+- feat: implement pending spec delta handling and user notifications (f2b915f)
+- Add repair validation and restoration mechanisms for test scenarios (d9a67ef)
+- delta generation issue fix (7d099e1)
+- Refactor project structure to remove .autoreg prefix from defect and fix paths (9aedace)
+- feat: add electron output verification and clean build process (27d28ce)
+- feat: enhance project creation and logging functionality with autoreg.md integration (a09ba6b)
+- feat: implement API scenario flow component and related functionality (db41c19)
+- feat: add voice input functionality with transcription support (f2d43e9)
+- feat: add autoreg.md path resolution and project scaffold (7f109e3)
+
+# Changelog
+
 ## v0.3.39 - 2026-09-15
 
 - Merge pull request #9 from autoreg-ai/firebase_1 (3b64f08)
